@@ -43,6 +43,131 @@ document.querySelectorAll('.item, .skill-item, .contact-item').forEach((el, i) =
   el.style.transitionDelay = `${(i % 6) * 0.07}s`;
 });
 
+// ─── GRID BUILD / UNBUILD ON SCROLL ──────────────────────────
+// Each cell flies in from OUTSIDE the viewport — chaotically
+
+// Seeded pseudo-random so values stay stable across frames
+function seededRand(seed) {
+  const x = Math.sin(seed + 1) * 43758.5453123;
+  return x - Math.floor(x);
+}
+
+function getComputedCols(grid) {
+  const tpl = getComputedStyle(grid).gridTemplateColumns;
+  if (tpl && tpl !== 'none') return tpl.trim().split(/\s+/).length;
+  return 2;
+}
+
+function initGridCells() {
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+
+  function prepareGrid(grid, cols) {
+    if (!grid) return;
+    const cells = Array.from(grid.children);
+    const rows  = Math.ceil(cells.length / cols);
+
+    cells.forEach((cell, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const nx  = cols > 1 ? col / (cols - 1) : 0.5;
+      const ny  = rows > 1 ? row / (rows - 1) : 0.5;
+
+      // --- Base direction: nearest edge ---
+      const dLeft = nx, dRight = 1 - nx, dTop = ny, dBottom = 1 - ny;
+      const minD  = Math.min(dLeft, dRight, dTop, dBottom);
+
+      let ox, oy;
+      if      (minD === dLeft)   { ox = -(W * 0.55 + col * 55);          oy = (ny - 0.5) * H * 0.3; }
+      else if (minD === dRight)  { ox =  W * 0.55 + (cols-1-col) * 55;  oy = (ny - 0.5) * H * 0.3; }
+      else if (minD === dTop)    { ox = (nx - 0.5) * W * 0.3;           oy = -(H * 0.5 + row * 45); }
+      else                       { ox = (nx - 0.5) * W * 0.3;           oy =  H * 0.5 + (rows-1-row) * 45; }
+
+      // --- Chaos: random extra offset per cell (seeded so it's stable) ---
+      const r1 = seededRand(i * 3 + 7)  * 2 - 1;  // -1 → 1
+      const r2 = seededRand(i * 3 + 13) * 2 - 1;
+      const r3 = seededRand(i * 3 + 19) * 2 - 1;
+
+      ox += r1 * W * 0.22;   // scatter horizontally
+      oy += r2 * H * 0.18;   // scatter vertically
+
+      // Random rotation during flight: -25 to +25 deg
+      const rot = r3 * 25;
+
+      // Slightly randomised stagger so they don't all move together
+      const baseDist  = Math.abs(nx - 0.5) + Math.abs(ny - 0.5);
+      const stagger   = (1 - baseDist) * 0.6 + seededRand(i * 5 + 3) * 0.4;
+
+      cell.dataset.ox      = ox.toFixed(1);
+      cell.dataset.oy      = oy.toFixed(1);
+      cell.dataset.rot     = rot.toFixed(2);
+      cell.dataset.stagger = stagger.toFixed(3);
+
+      cell.style.willChange = 'transform, opacity, box-shadow';
+      cell.style.transition = 'none';
+      cell.style.opacity    = '0';
+      cell.style.transform  = `translate(${ox.toFixed(1)}px, ${oy.toFixed(1)}px) rotate(${rot.toFixed(2)}deg)`;
+    });
+  }
+
+  const skillGrid   = document.querySelector('.skills-grid');
+  const contactGrid = document.querySelector('.contact-grid');
+  if (skillGrid)   prepareGrid(skillGrid,   getComputedCols(skillGrid));
+  if (contactGrid) prepareGrid(contactGrid, getComputedCols(contactGrid));
+}
+
+function updateGridCells() {
+  const wh = window.innerHeight;
+  // Read accent color for ghost border
+  const accentRgb = getComputedStyle(document.documentElement)
+    .getPropertyValue('--accent-rgb').trim() || '200,241,53';
+
+  ['.skills-grid', '.contact-grid'].forEach(selector => {
+    const grid = document.querySelector(selector);
+    if (!grid) return;
+
+    const rect       = grid.getBoundingClientRect();
+    const enterAt    = wh + 100;
+    const completeAt = wh * 0.15;
+    const progress   = clamp((enterAt - rect.top) / (enterAt - completeAt), 0, 1);
+
+    Array.from(grid.children).forEach(cell => {
+      if (cell._hovered) return;
+
+      const stagger   = parseFloat(cell.dataset.stagger) || 0;
+      const cellRaw   = clamp((progress - stagger * 0.30) / 0.70, 0, 1);
+      // Ease out quart: snappy landing
+      const eased     = 1 - Math.pow(1 - cellRaw, 4);
+
+      const ox  = parseFloat(cell.dataset.ox)  || 0;
+      const oy  = parseFloat(cell.dataset.oy)  || 0;
+      const rot = parseFloat(cell.dataset.rot) || 0;
+
+      const tx      = ox  * (1 - eased);
+      const ty      = oy  * (1 - eased);
+      const angle   = rot * (1 - eased);          // rotates to 0 on arrival
+      const opacity = Math.min(eased * 1.8, 1);   // fades in quicker than it moves
+
+      // Ghost border: visible while flying, fades out as cell lands
+      // inFlight goes 0→1→0: peaks mid-flight, gone when settled
+      const inFlight    = Math.sin(eased * Math.PI);  // bell curve 0→1→0
+      const borderAlpha = inFlight * 0.30;             // max 0.30 opacity — tenuo
+
+      cell.style.transition  = 'none';
+      cell.style.opacity     = opacity;
+      cell.style.transform   = `translate(${tx.toFixed(2)}px, ${ty.toFixed(2)}px) rotate(${angle.toFixed(2)}deg)`;
+      cell.style.outline     = `1px solid rgba(${accentRgb}, ${borderAlpha.toFixed(3)})`;
+      cell.style.outlineOffset = '0px';
+    });
+  });
+}
+
+// Re-init on resize
+window.addEventListener('resize', () => setTimeout(initGridCells, 100));
+
+// Initialize after DOM is ready
+setTimeout(initGridCells, 60);
+
 // ─── PARALLAX HERO ───────────────────────────────────────────
 function parallaxHero() {
   if (isMobile) return;
@@ -123,7 +248,7 @@ document.addEventListener('mousemove', e => {
 function animateCursor() {
   glowX = lerp(glowX, mouseX, 0.08);
   glowY = lerp(glowY, mouseY, 0.08);
-  glow.style.transform = `translate(${glowX - 200}px, ${glowY - 200}px)`;
+  glow.style.transform = `translate(${glowX - 125}px, ${glowY - 125}px)`;
   requestAnimationFrame(animateCursor);
 }
 if (!isMobile) animateCursor();
@@ -249,13 +374,249 @@ if (heroH1) {
   heroH1.addEventListener('mouseenter', () => scramble(heroH1, originalText));
 }
 
-// ─── MAIN ANIMATION LOOP ──────────────────────────────────────
+// ─── NEURAL NETWORK PARTICLES ─────────────────────────────────
+(function initNeuralNet() {
+  if (isMobile) return;
+
+  // Canvas setup — sits behind everything, fixed to viewport
+  const canvas = document.createElement('canvas');
+  canvas.id = 'neural-canvas';
+  canvas.style.cssText = `
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 1;
+  `;
+  document.body.insertBefore(canvas, document.body.firstChild);
+
+  const ctx = canvas.getContext('2d');
+
+  // Config
+  const CFG = {
+    count:         28,       // number of particles
+    maxDist:       130,      // connection draw distance (px)
+    mouseRadius:   180,      // mouse attraction radius
+    mouseForce:    0.012,    // how strongly mouse pulls particles
+    speed:         0.18,     // base drift speed
+    nodeSizeMin:   0.8,
+    nodeSizeMax:   1.6,
+    lineMaxAlpha:  0.06,     // max opacity of connecting lines
+    mouseLineAlpha:0.18,     // line opacity when near mouse
+    pulseSpeed:    0.014,
+  };
+
+  let W = window.innerWidth;
+  let H = window.innerHeight;
+  canvas.width  = W;
+  canvas.height = H;
+
+  window.addEventListener('resize', () => {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width  = W;
+    canvas.height = H;
+  });
+
+  // Read accent color from CSS variable
+  function getAccentRGB() {
+    const raw = getComputedStyle(document.documentElement)
+      .getPropertyValue('--accent-rgb').trim();
+    if (raw) {
+      const parts = raw.split(',').map(s => parseInt(s.trim(), 10));
+      if (parts.length === 3) return parts;
+    }
+    return [200, 241, 53]; // fallback lime
+  }
+
+  // Particle class
+  class Particle {
+    constructor() { this.reset(true); }
+
+    reset(randomY = false) {
+      this.x  = Math.random() * W;
+      this.y  = randomY ? Math.random() * H : (Math.random() > 0.5 ? -10 : H + 10);
+      this.vx = (Math.random() - 0.5) * CFG.speed;
+      this.vy = (Math.random() - 0.5) * CFG.speed;
+      this.r  = CFG.nodeSizeMin + Math.random() * (CFG.nodeSizeMax - CFG.nodeSizeMin);
+      this.phase = Math.random() * Math.PI * 2;  // for pulse
+      this.baseAlpha = 0.08 + Math.random() * 0.18;
+    }
+
+    update(mx, my) {
+      // Mouse attraction
+      const dx = mx - this.x;
+      const dy = my - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < CFG.mouseRadius && dist > 1) {
+        const force = (CFG.mouseRadius - dist) / CFG.mouseRadius * CFG.mouseForce;
+        this.vx += (dx / dist) * force;
+        this.vy += (dy / dist) * force;
+      }
+
+      // Dampen velocity so they don't fly away
+      this.vx *= 0.985;
+      this.vy *= 0.985;
+
+      // Clamp speed
+      const spd = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+      if (spd > CFG.speed * 3) {
+        this.vx = (this.vx / spd) * CFG.speed * 3;
+        this.vy = (this.vy / spd) * CFG.speed * 3;
+      }
+
+      this.x += this.vx;
+      this.y += this.vy;
+      this.phase += CFG.pulseSpeed;
+
+      // Wrap around edges
+      if (this.x < -20) this.x = W + 20;
+      if (this.x > W + 20) this.x = -20;
+      if (this.y < -20) this.y = H + 20;
+      if (this.y > H + 20) this.y = -20;
+    }
+
+    draw(rgb) {
+      const pulse = 0.7 + 0.3 * Math.sin(this.phase);
+      const alpha = this.baseAlpha * pulse;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r * pulse, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
+      ctx.fill();
+    }
+  }
+
+  // Init particles
+  const particles = Array.from({ length: CFG.count }, () => new Particle());
+
+  // Mouse position (screen coords, same as canvas which is fixed)
+  let nmx = -999, nmy = -999;
+  document.addEventListener('mousemove', e => { nmx = e.clientX; nmy = e.clientY; });
+
+  function drawNeural() {
+    const rgb = getAccentRGB();
+    ctx.clearRect(0, 0, W, H);
+
+    // Update + collect positions
+    particles.forEach(p => p.update(nmx, nmy));
+
+    // Draw connections
+    for (let i = 0; i < particles.length; i++) {
+      const a = particles[i];
+      for (let j = i + 1; j < particles.length; j++) {
+        const b = particles[j];
+        const dx = a.x - b.x;
+        const dy = a.y - b.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > CFG.maxDist) continue;
+
+        // Fade line by distance
+        let alpha = (1 - dist / CFG.maxDist) * CFG.lineMaxAlpha;
+
+        // Boost lines near mouse
+        const midX = (a.x + b.x) / 2;
+        const midY = (a.y + b.y) / 2;
+        const mdx = midX - nmx, mdy = midY - nmy;
+        const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+        if (mdist < CFG.mouseRadius) {
+          const boost = (1 - mdist / CFG.mouseRadius);
+          alpha = Math.min(alpha + boost * CFG.mouseLineAlpha, CFG.mouseLineAlpha);
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
+        ctx.lineWidth = 0.7;
+        ctx.stroke();
+      }
+
+      // Draw lines from mouse to nearby particles
+      const mdx = a.x - nmx, mdy = a.y - nmy;
+      const mouseDist = Math.sqrt(mdx * mdx + mdy * mdy);
+      if (mouseDist < CFG.mouseRadius * 0.7) {
+        const alpha = (1 - mouseDist / (CFG.mouseRadius * 0.7)) * CFG.mouseLineAlpha * 1.2;
+        ctx.beginPath();
+        ctx.moveTo(nmx, nmy);
+        ctx.lineTo(a.x, a.y);
+        ctx.strokeStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
+        ctx.lineWidth = 0.9;
+        ctx.stroke();
+      }
+    }
+
+    // Draw particles on top
+    particles.forEach(p => p.draw(rgb));
+
+    // Draw a small glowing dot at mouse position (only when in window)
+    if (nmx > 0) {
+      const grad = ctx.createRadialGradient(nmx, nmy, 0, nmx, nmy, 8);
+      grad.addColorStop(0, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.6)`);
+      grad.addColorStop(1, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0)`);
+      ctx.beginPath();
+      ctx.arc(nmx, nmy, 8, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+  }
+
+  // Expose so the main loop can call it
+  window._drawNeural = drawNeural;
+})();
+
+// ─── HOVER MICRO-INTERACTIONS FOR GRID CELLS ─────────────────
+// Done in JS to not conflict with scroll-driven transform
+document.querySelectorAll('.skill-item').forEach(el => {
+  el.addEventListener('mouseenter', function() {
+    if (parseFloat(this.style.opacity) < 0.5) return;
+    const cur = this.style.transform || '';
+    const hasTranslate = cur.includes('translate');
+    if (hasTranslate) {
+      const match = cur.match(/translate\(([^)]+)\)/);
+      if (match) {
+        const parts = match[1].split(',');
+        const tx = parseFloat(parts[0]);
+        const ty = parseFloat(parts[1]);
+        if (Math.abs(tx) < 2 && Math.abs(ty) < 2) {
+          this._hovered = true;
+          this.style.transition = 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1), background 0.2s, color 0.2s';
+          this.style.transform = `translate(0px, -3px) scale(1)`;
+        }
+      }
+    }
+  });
+  el.addEventListener('mouseleave', function() {
+    if (!this._hovered) return;
+    this._hovered = false;
+    this.style.transition = 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1), background 0.2s, color 0.2s';
+    this.style.transform = `translate(0px, 0px) scale(1)`;
+  });
+});
+
+document.querySelectorAll('.contact-item').forEach(el => {
+  el.addEventListener('mouseenter', function() {
+    if (parseFloat(this.style.opacity) < 0.5) return;
+    this._hovered = true;
+    this.style.transition = 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1)';
+    this.style.transform = `translate(0px, -4px) scale(1)`;
+  });
+  el.addEventListener('mouseleave', function() {
+    if (!this._hovered) return;
+    this._hovered = false;
+    this.style.transition = 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1)';
+    this.style.transform = `translate(0px, 0px) scale(1)`;
+  });
+});
 function loop() {
   parallaxHero();
   parallaxSections();
   animateFloaters();
   animateTicker();
   updateProgress();
+  updateGridCells();
+  if (window._drawNeural) window._drawNeural();
   requestAnimationFrame(loop);
 }
 loop();

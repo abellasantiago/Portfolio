@@ -78,7 +78,7 @@ body::after {
 #cursor-glow {
   position: fixed;
   top: 0; left: 0;
-  width: 400px; height: 400px;
+  width: 250px; height: 250px;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(var(--accent-rgb), 0.04) 0%, transparent 70%);
   pointer-events: none;
@@ -475,9 +475,9 @@ h2 {
   font-family: var(--font-mono); font-size: 11px;
   letter-spacing: 0.08em; color: var(--text-muted);
   text-transform: uppercase;
-  transition: background 0.25s, color 0.25s, transform 0.25s var(--ease-back);
   cursor: default;
   display: flex; align-items: center; gap: 10px;
+  will-change: transform, opacity;
 }
 .skill-item::before {
   content: ''; width: 6px; height: 6px; border-radius: 50%;
@@ -486,7 +486,6 @@ h2 {
 }
 .skill-item:hover {
   background: var(--accent-dim); color: var(--text);
-  transform: translateY(-2px);
 }
 .skill-item:hover::before { background: var(--accent); transform: scale(1.4); }
 
@@ -501,8 +500,8 @@ h2 {
   background: var(--bg); padding: 28px 24px;
   text-decoration: none;
   display: flex; flex-direction: column; gap: 8px;
-  transition: background 0.25s, transform 0.3s var(--ease);
   position: relative; overflow: hidden;
+  will-change: transform, opacity;
 }
 .contact-item::after {
   content: '';
