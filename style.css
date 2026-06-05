@@ -270,7 +270,7 @@ body.oscuro #btn-tema {
     /* NAVBAR */
     #navbar {
         padding: 14px 20px;
-    }
+    }g
 
     #navbar ul {
         gap: 16px;
@@ -316,4 +316,19 @@ body.oscuro #btn-tema {
         font-size: 11px;
         padding: 5px 12px;
     }
+}
+
+/* FOTO DE PERFIL */
+.foto-perfil {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 24px;
+    display: block;
+    border: 2px solid #e0e0e0;
+}
+
+body.oscuro .foto-perfil {
+    border-color: #333;
 }
