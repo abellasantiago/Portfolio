@@ -248,7 +248,7 @@ document.addEventListener('mousemove', e => {
 function animateCursor() {
   glowX = lerp(glowX, mouseX, 0.08);
   glowY = lerp(glowY, mouseY, 0.08);
-  glow.style.transform = `translate(${glowX - 125}px, ${glowY - 125}px)`;
+  glow.style.transform = `translate(${glowX}px, ${glowY}px)`;
   requestAnimationFrame(animateCursor);
 }
 if (!isMobile) animateCursor();
@@ -256,17 +256,27 @@ if (!isMobile) animateCursor();
 // ─── FLOATING ELEMENTS ────────────────────────────────────────
 const floaterData = [
   // [x%, y%, size, speed, opacity, shape]
-  [8,  12, 120, 0.04, 0.06, 'circle'],
-  [85, 18, 60,  0.07, 0.08, 'circle'],
-  [92, 45, 200, 0.03, 0.04, 'circle'],
-  [5,  60, 80,  0.05, 0.07, 'circle'],
-  [75, 72, 140, 0.04, 0.05, 'circle'],
-  [20, 85, 50,  0.08, 0.09, 'circle'],
-  [50, 30, 1,   0,    0.15, 'cross'],
-  [15, 50, 1,   0,    0.12, 'cross'],
-  [80, 65, 1,   0,    0.10, 'cross'],
-  [40, 80, 1,   0,    0.13, 'cross'],
-  [60, 15, 1,   0,    0.11, 'cross'],
+  [8,  12, 120, 0.04, 0.10, 'circle'],
+  [85, 18, 60,  0.07, 0.13, 'circle'],
+  [92, 45, 200, 0.03, 0.07, 'circle'],
+  [5,  60, 80,  0.05, 0.11, 'circle'],
+  [75, 72, 140, 0.04, 0.09, 'circle'],
+  [20, 85, 50,  0.08, 0.14, 'circle'],
+  [45, 55, 90,  0.05, 0.08, 'circle'],
+  [68, 30, 70,  0.06, 0.10, 'circle'],
+  [30, 20, 45,  0.09, 0.12, 'circle'],
+  [88, 80, 110, 0.03, 0.07, 'circle'],
+  [12, 75, 55,  0.07, 0.09, 'circle'],
+  [55, 90, 80,  0.04, 0.08, 'circle'],
+  [50, 30, 1,   0,    0.22, 'cross'],
+  [15, 50, 1,   0,    0.18, 'cross'],
+  [80, 65, 1,   0,    0.16, 'cross'],
+  [40, 80, 1,   0,    0.20, 'cross'],
+  [60, 15, 1,   0,    0.17, 'cross'],
+  [25, 40, 1,   0,    0.15, 'cross'],
+  [70, 50, 1,   0,    0.19, 'cross'],
+  [90, 25, 1,   0,    0.14, 'cross'],
+  [35, 65, 1,   0,    0.16, 'cross'],
 ];
 
 let floaterEls = [];
@@ -346,33 +356,140 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
   });
 });
 
-// ─── TEXT SCRAMBLE on hover (hero h1) ─────────────────────────
-const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%';
-function scramble(el, original) {
-  let iter = 0;
-  const maxIter = original.length * 3;
-  const interval = setInterval(() => {
-    el.textContent = original
-      .split('')
-      .map((ch, i) => {
-        if (ch === '\n' || ch === ' ') return ch;
-        if (i < iter / 3) return ch;
-        return CHARS[Math.floor(Math.random() * CHARS.length)];
-      })
-      .join('');
-    iter++;
-    if (iter > maxIter) {
-      clearInterval(interval);
-      el.textContent = original;
-    }
-  }, 30);
-}
+// ─── HERO H1: LETTER FLY-IN + PSEUDO-SCRAMBLE ────────────────
+// Trick: each letter span keeps its real character (holds natural
+// width/kerning). During scramble, the real char becomes transparent
+// and a CSS attr(data-sc) on ::before shows the random char —
+// so layout is NEVER affected.
 
-const heroH1 = document.querySelector('#hero h1');
-if (heroH1) {
-  const originalText = heroH1.textContent;
-  heroH1.addEventListener('mouseenter', () => scramble(heroH1, originalText));
-}
+(function initHeroH1() {
+  const heroH1 = document.querySelector('#hero h1');
+  if (!heroH1) return;
+
+  const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%';
+
+  const linesData = [
+    { text: 'Santiago', accent: false },
+    { text: 'Abella',   accent: true  },
+  ];
+
+  // Build two block line-wrappers
+  heroH1.innerHTML = '';
+  const lineEls = linesData.map(() => {
+    const s = document.createElement('span');
+    s.style.cssText = 'display:block; white-space:nowrap;';
+    heroH1.appendChild(s);
+    return s;
+  });
+
+  const allLetters = [];
+
+  function seededR(seed) {
+    const x = Math.sin(seed * 9301 + 49297) * 233280;
+    return x - Math.floor(x);
+  }
+
+  linesData.forEach((lineData, li) => {
+    const lineEl = lineEls[li];
+    [...lineData.text].forEach((ch, ci) => {
+      const span = document.createElement('span');
+      span.style.cssText = [
+        'display:inline-block',
+        'position:relative',
+        'will-change:transform, opacity',
+        lineData.accent ? 'color:var(--accent)' : '',
+      ].filter(Boolean).join(';');
+      span.dataset.accent = lineData.accent ? '1' : '0';
+      span.dataset.orig   = ch;
+      span.dataset.sc     = ch;
+      span.textContent    = ch;
+
+      const seed  = li * 100 + ci;
+      const angle = seededR(seed) * 360;
+      const dist  = 380 + seededR(seed + 7) * 650;
+      const ox    = Math.cos(angle * Math.PI / 180) * dist;
+      const oy    = Math.sin(angle * Math.PI / 180) * dist;
+      const rot   = (seededR(seed + 13) - 0.5) * 75;
+      const delay = (li * 10 + ci) * 40 + seededR(seed + 3) * 50;
+
+      span.style.opacity   = '0';
+      span.style.transform = `translate(${ox.toFixed(1)}px,${oy.toFixed(1)}px) rotate(${rot.toFixed(1)}deg)`;
+
+      lineEl.appendChild(span);
+      allLetters.push({ el: span, delay });
+    });
+  });
+
+  // Fly-in
+  setTimeout(() => {
+    allLetters.forEach(({ el, delay }) => {
+      setTimeout(() => {
+        el.style.transition = 'transform 0.78s cubic-bezier(0.16,1,0.3,1), opacity 0.42s ease';
+        el.style.transform  = 'translate(0px,0px) rotate(0deg)';
+        el.style.opacity    = '1';
+      }, delay);
+    });
+  }, 260);
+
+  // CSS: real char transparent, ::before shows data-sc value
+  const styleEl = document.createElement('style');
+  styleEl.textContent = `
+    #hero h1 span.scrambling { color: transparent !important; }
+    #hero h1 span.scrambling::before {
+      content: attr(data-sc);
+      position: absolute;
+      left: 0; top: 0;
+      color: var(--text);
+      pointer-events: none;
+    }
+    #hero h1 span.scrambling[data-accent="1"]::before { color: var(--accent); }
+  `;
+  document.head.appendChild(styleEl);
+
+  // Scramble on hover
+  let scrambling  = false;
+  let scrambleIvs = [];
+
+  heroH1.addEventListener('mouseenter', () => {
+    if (scrambling) return;
+    scrambling = true;
+    scrambleIvs.forEach(clearInterval);
+    scrambleIvs = [];
+
+    allLetters.forEach(({ el }) => el.classList.add('scrambling'));
+
+    linesData.forEach((lineData, li) => {
+      const spans    = Array.from(lineEls[li].querySelectorAll('span'));
+      const original = lineData.text;
+      let iter       = 0;
+      const maxIter  = original.length * 4;
+
+      const iv = setInterval(() => {
+        spans.forEach((sp, i) => {
+          if (i < iter / 4) {
+            sp.dataset.sc = original[i];
+            sp.classList.remove('scrambling');
+          } else {
+            sp.dataset.sc = CHARS[Math.floor(Math.random() * CHARS.length)];
+          }
+        });
+        iter++;
+        if (iter > maxIter) {
+          clearInterval(iv);
+          spans.forEach((sp, i) => {
+            sp.dataset.sc = original[i];
+            sp.classList.remove('scrambling');
+          });
+        }
+      }, 28);
+
+      scrambleIvs.push(iv);
+    });
+
+    const totalMs = linesData.reduce((a, l) => a + l.text.length, 0) * 4 * 28 + 300;
+    setTimeout(() => { scrambling = false; }, totalMs);
+  });
+})();
 
 // ─── NEURAL NETWORK PARTICLES ─────────────────────────────────
 (function initNeuralNet() {
@@ -396,15 +513,15 @@ if (heroH1) {
 
   // Config
   const CFG = {
-    count:         28,       // number of particles
-    maxDist:       130,      // connection draw distance (px)
-    mouseRadius:   180,      // mouse attraction radius
+    count:         42,       // number of particles
+    maxDist:       150,      // connection draw distance (px)
+    mouseRadius:   200,      // mouse attraction radius
     mouseForce:    0.012,    // how strongly mouse pulls particles
     speed:         0.18,     // base drift speed
-    nodeSizeMin:   0.8,
-    nodeSizeMax:   1.6,
-    lineMaxAlpha:  0.06,     // max opacity of connecting lines
-    mouseLineAlpha:0.18,     // line opacity when near mouse
+    nodeSizeMin:   0.9,
+    nodeSizeMax:   2.0,
+    lineMaxAlpha:  0.10,     // max opacity of connecting lines
+    mouseLineAlpha:0.26,     // line opacity when near mouse
     pulseSpeed:    0.014,
   };
 
@@ -442,7 +559,7 @@ if (heroH1) {
       this.vy = (Math.random() - 0.5) * CFG.speed;
       this.r  = CFG.nodeSizeMin + Math.random() * (CFG.nodeSizeMax - CFG.nodeSizeMin);
       this.phase = Math.random() * Math.PI * 2;  // for pulse
-      this.baseAlpha = 0.08 + Math.random() * 0.18;
+      this.baseAlpha = 0.12 + Math.random() * 0.24;
     }
 
     update(mx, my) {
