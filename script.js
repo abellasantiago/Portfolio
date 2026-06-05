@@ -1,39 +1,18 @@
-// Agrega la clase "scrolled" al navbar cuando el usuario scrollea
-window.addEventListener('scroll', function() {
-    const navbar = document.getElementById('navbar');
-
-    if (window.scrollY > 50) {
-        navbar.classList.add('scrolled');
-    } else {
-        navbar.classList.remove('scrolled');
-    }
+// Navbar scroll effect
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
 });
 
-// Modo oscuro / claro
-const btnTema = document.getElementById('btn-tema');
-
-btnTema.addEventListener('click', function() {
-    document.body.classList.toggle('oscuro');
-
-    // Cambia el ícono según el modo
-    if (document.body.classList.contains('oscuro')) {
-        btnTema.textContent = '☀️';
-    } else {
-        btnTema.textContent = '🌙';
-    }
+// Theme toggle — dark by default, light mode available
+const btn = document.getElementById('btn-tema');
+btn.addEventListener('click', () => {
+  document.body.classList.toggle('claro');
+  btn.textContent = document.body.classList.contains('claro') ? '●' : '◐';
 });
 
-// Animaciones al scrollear
-const secciones = document.querySelectorAll('.oculto');
+// Scroll reveal
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
 
-const observer = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-        }
-    });
-}, { threshold: 0.1 });
-
-secciones.forEach(function(seccion) {
-    observer.observe(seccion);
-});
+document.querySelectorAll('.oculto').forEach(el => observer.observe(el));

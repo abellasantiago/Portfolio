@@ -1,110 +1,193 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Santiago Abella — Portfolio</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Santiago Abella — Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+<!-- NAVBAR -->
 <nav id="navbar">
-    <span class="nav-logo">SA</span>
-    <ul>
-        <li><a href="#sobre-mi">Sobre mí</a></li>
-        <li><a href="#experiencia">Experiencia</a></li>
-        <li><a href="#educacion">Educación</a></li>
-        <li><a href="#habilidades">Habilidades</a></li>
-        <li><a href="#contacto">Contacto</a></li>
-    </ul>
-    <button id="btn-tema">🌙</button>
+  <span class="nav-logo">S<span>A</span></span>
+  <ul>
+    <li><a href="#sobre-mi">Sobre mí</a></li>
+    <li><a href="#experiencia">Experiencia</a></li>
+    <li><a href="#educacion">Educación</a></li>
+    <li><a href="#habilidades">Habilidades</a></li>
+    <li><a href="#contacto">Contacto</a></li>
+  </ul>
+  <button id="btn-tema" title="Cambiar tema">◐</button>
 </nav>
 
-    <!-- HERO -->
-    <section id="hero">
-        <img src="Foto_perfil.jpg" alt="Santiago Abella" class="foto-perfil">
-        <h1>Santiago Abella</h1>
-        <p>Lic. en Dirección de Empresas · Estudiante de Desarrollo de Software</p>
-    </section>
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-inner">
+    <img src="Foto_perfil.jpg" alt="Santiago Abella" class="foto-perfil">
+    <p class="hero-tag">Disponible para nuevas oportunidades</p>
+    <h1>Santiago<br><em>Abella</em></h1>
+    <p class="hero-sub">
+      <span>Lic. en Dirección de Empresas</span><br>
+      Estudiante de Desarrollo de Software · UCU
+    </p>
+    <div class="hero-cta">
+      <a href="#contacto" class="btn-primary">Contactar</a>
+      <a href="https://github.com/abellasantiago" target="_blank" class="btn-ghost">GitHub</a>
+      <a href="https://linkedin.com/in/santiagoabella" target="_blank" class="btn-ghost">LinkedIn</a>
+    </div>
+  </div>
+  <span class="hero-scroll">Scroll</span>
+</section>
 
-    <!-- SOBRE MÍ -->
-    <section id="sobre-mi" class="oculto">
-        <h2>Sobre mí</h2>
-        <p>Licenciado en Dirección de Empresas con experiencia en administración y control financiero. Actualmente cursando una Tecnicatura en Desarrollo de Software, combinando visión de negocio con capacidades técnicas en C# y Python.</p>
-    </section>
+<!-- SOBRE MÍ -->
+<section id="sobre-mi" class="oculto">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2>Sobre mí</h2>
+  </div>
+  <p>
+    Licenciado en Dirección de Empresas con experiencia en 
+    <strong>administración y control financiero</strong>. 
+    Actualmente cursando una Tecnicatura en Desarrollo de Software, 
+    combinando visión estratégica de negocio con capacidades técnicas en 
+    <strong>C# y Python</strong>.
+  </p>
+</section>
 
-    <!-- EXPERIENCIA -->
-    <section id="experiencia" class="oculto">
-        <h2>Experiencia</h2>
+<!-- EXPERIENCIA -->
+<section id="experiencia" class="oculto">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2>Experiencia</h2>
+  </div>
 
-        <div class="item">
-            <h3>Responsable de Administración y Gestión de Obras</h3>
-            <span class="fecha">2023 — Actualidad</span>
-            <p class="empresa">Estudio 21 · Estudio de Arquitectura</p>
-            <ul>
-                <li>Gestión administrativa de múltiples proyectos en simultáneo.</li>
-                <li>Desarrollo de sistemas de seguimiento en Excel para control financiero y trazabilidad de gastos.</li>
-                <li>Supervisión de presupuestos, pagos a proveedores y logística de materiales.</li>
-            </ul>
-        </div>
+  <div class="item">
+    <div class="item-left">
+      <h3>Responsable de Administración y Gestión de Obras</h3>
+      <p class="empresa">Estudio 21 · Arquitectura</p>
+      <ul>
+        <li>Gestión administrativa de múltiples proyectos en simultáneo.</li>
+        <li>Sistemas de seguimiento en Excel para control financiero y trazabilidad de gastos.</li>
+        <li>Supervisión de presupuestos, pagos a proveedores y logística de materiales.</li>
+      </ul>
+    </div>
+    <div class="item-right">
+      <span class="fecha">2023 — Hoy</span>
+    </div>
+  </div>
 
-        <div class="item">
-            <h3>Operador Independiente — Criptomonedas y NFTs</h3>
-            <span class="fecha">2018 — 2022</span>
-            <p class="empresa">Binance / OpenSea</p>
-            <ul>
-                <li>Análisis de mercado y gestión de portafolio en Binance.</li>
-                <li>Valuación de activos digitales y gestión de colecciones en OpenSea.</li>
-                <li>Gestión de riesgo y toma de decisiones bajo volatilidad.</li>
-            </ul>
-        </div>
-    </section>
+  <div class="item">
+    <div class="item-left">
+      <h3>Operador Independiente — Cripto &amp; NFTs</h3>
+      <p class="empresa">Binance / OpenSea</p>
+      <ul>
+        <li>Análisis de mercado y gestión de portafolio en Binance.</li>
+        <li>Valuación de activos digitales y gestión de colecciones en OpenSea.</li>
+        <li>Gestión de riesgo y toma de decisiones bajo volatilidad.</li>
+      </ul>
+    </div>
+    <div class="item-right">
+      <span class="fecha">2018 — 2022</span>
+    </div>
+  </div>
+</section>
 
-    <!-- EDUCACIÓN -->
-    <section id="educacion" class="oculto">
-        <h2>Educación</h2>
+<!-- EDUCACIÓN -->
+<section id="educacion" class="oculto">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2>Educación</h2>
+  </div>
 
-        <div class="item">
-            <h3>Tecnicatura en Desarrollo de Software</h3>
-            <span class="fecha">2025 — 2027 (en curso)</span>
-            <p class="empresa">Universidad Católica del Uruguay</p>
-        </div>
+  <div class="item">
+    <div class="item-left">
+      <h3>Tecnicatura en Desarrollo de Software</h3>
+      <p class="empresa">Universidad Católica del Uruguay</p>
+    </div>
+    <div class="item-right">
+      <span class="fecha">2025 — 2027</span>
+    </div>
+  </div>
 
-        <div class="item">
-            <h3>Licenciatura en Dirección de Empresas</h3>
-            <span class="fecha">2016 — 2020</span>
-            <p class="empresa">Universidad Católica del Uruguay</p>
-        </div>
+  <div class="item">
+    <div class="item-left">
+      <h3>Licenciatura en Dirección de Empresas</h3>
+      <p class="empresa">Universidad Católica del Uruguay</p>
+    </div>
+    <div class="item-right">
+      <span class="fecha">2016 — 2020</span>
+    </div>
+  </div>
 
-            <div class="item">
-            <h3>Bachillerato</h3>
-            <span class="fecha">Graduado en 2014</span>
-            <p class="empresa">Colegio y Liceo Pedro Poveda</p>
-        </div>
-    </section>
+  <div class="item">
+    <div class="item-left">
+      <h3>Bachillerato</h3>
+      <p class="empresa">Colegio y Liceo Pedro Poveda</p>
+    </div>
+    <div class="item-right">
+      <span class="fecha">2014</span>
+    </div>
+  </div>
+</section>
 
-    <!-- HABILIDADES -->
-    <section id="habilidades" class="oculto">
-        <h2>Habilidades</h2>
-        <ul class="tags">
-            <li>C# / .NET</li>
-            <li>Python</li>
-            <li>Git / GitHub</li>
-            <li>Excel avanzado</li>
-            <li>Visual Studio Code</li>
-            <li>Gestión de proyectos</li>
-            <li>Control financiero</li>
-        </ul>
-    </section>
+<!-- HABILIDADES -->
+<section id="habilidades" class="oculto">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2>Habilidades</h2>
+  </div>
+  <div class="skills-grid">
+    <div class="skill-item">C# / .NET</div>
+    <div class="skill-item">Python</div>
+    <div class="skill-item">Git / GitHub</div>
+    <div class="skill-item">Excel Avanzado</div>
+    <div class="skill-item">Visual Studio Code</div>
+    <div class="skill-item">IA Aplicada</div>
+    <div class="skill-item">Gestión de Proyectos</div>
+    <div class="skill-item">Control Financiero</div>
+    <div class="skill-item">Análisis de Negocio</div>
+    <div class="skill-item">Trabajo en Equipo</div>
+  </div>
+</section>
 
-    <!-- CONTACTO -->
-    <section id="contacto" class="oculto">
-        <h2>Contacto</h2>
-        <p>Email: <a href="mailto:santiagoabella.f@gmail.com">santiagoabella.f@gmail.com</a></p>
-        <p>LinkedIn: <a href="https://linkedin.com/in/santiagoabella" target="_blank">in/santiagoabella</a></p>
-        <p>GitHub: <a href="https://github.com/abellasantiago" target="_blank">abellasantiago</a></p>
-    </section>
+<!-- CONTACTO -->
+<section id="contacto" class="oculto">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2>Contacto</h2>
+  </div>
+  <div class="contact-grid">
+    <a href="mailto:santiagoabella.f@gmail.com" class="contact-item">
+      <span class="contact-label">Email</span>
+      <span class="contact-value">santiagoabella.f@gmail.com</span>
+      <span class="contact-arrow">↗</span>
+    </a>
+    <a href="https://linkedin.com/in/santiagoabella" target="_blank" class="contact-item">
+      <span class="contact-label">LinkedIn</span>
+      <span class="contact-value">in/santiagoabella</span>
+      <span class="contact-arrow">↗</span>
+    </a>
+    <a href="https://github.com/abellasantiago" target="_blank" class="contact-item">
+      <span class="contact-label">GitHub</span>
+      <span class="contact-value">abellasantiago</span>
+      <span class="contact-arrow">↗</span>
+    </a>
+    <a href="tel:094388662" class="contact-item">
+      <span class="contact-label">Teléfono</span>
+      <span class="contact-value">094 388 662</span>
+      <span class="contact-arrow">↗</span>
+    </a>
+  </div>
+</section>
 
-    <script src="script.js"></script>
+<footer>
+  <span class="footer-copy">© 2025 <span>Santiago Abella</span></span>
+  <span class="footer-copy">Montevideo, Uruguay</span>
+</footer>
+
+<script src="script.js"></script>
 </body>
 </html>
