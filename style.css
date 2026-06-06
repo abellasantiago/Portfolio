@@ -75,6 +75,51 @@ body::after {
 }
 
 /* ─── CURSOR GLOW ─────────────────────────────────────────── */
+/* Ocultar cursor nativo en desktop */
+body:not(.cursor-hidden) { cursor: none; }
+body:not(.cursor-hidden) a,
+body:not(.cursor-hidden) button,
+body:not(.cursor-hidden) [role="button"] { cursor: none; }
+
+/* Restaurar cursor en inputs de texto */
+body:not(.cursor-hidden) input,
+body:not(.cursor-hidden) textarea { cursor: text; }
+
+/* ── Punto central — sigue el mouse sin lag ── */
+#cursor-dot {
+  position: fixed;
+  top: 0; left: 0;
+  width: 6px; height: 6px;
+  margin-left: -3px; margin-top: -3px;
+  border-radius: 50%;
+  background: rgba(var(--accent-rgb), 0.15);
+  pointer-events: none;
+  z-index: 10000;
+  will-change: transform;
+  transition: width 0.2s var(--ease-back),
+              height 0.2s var(--ease-back),
+              margin 0.2s var(--ease-back),
+              opacity 0.2s,
+              background 0.2s;
+}
+
+/* ── Anillo exterior — desactivado ── */
+#cursor-ring { display: none; }
+#cursor-ring::after { display: none; }
+
+/* ── Estados ── */
+body.cursor-hover #cursor-dot {
+  width: 10px; height: 10px;
+  margin-left: -5px; margin-top: -5px;
+}
+body.cursor-card #cursor-dot { opacity: 0; }
+body.cursor-click #cursor-dot {
+  width: 3px; height: 3px;
+  margin-left: -1.5px; margin-top: -1.5px;
+}
+body.cursor-text #cursor-dot { opacity: 0; }
+
+/* ── Aura difusa ── */
 #cursor-glow {
   position: fixed;
   top: 0; left: 0;

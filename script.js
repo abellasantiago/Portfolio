@@ -269,26 +269,110 @@ function parallaxSections() {
   });
 }
 
-// ─── CURSOR GLOW ──────────────────────────────────────────────
+// ─── CURSOR GLOW — variables (el aura difusa, usada también por el cursor custom) ─
 const glow = document.createElement('div');
 glow.id = 'cursor-glow';
 document.body.appendChild(glow);
 
 let mouseX = -200, mouseY = -200;
-let glowX = -200, glowY = -200;
+let glowX  = -200, glowY  = -200;
 
 document.addEventListener('mousemove', e => {
   mouseX = e.clientX;
   mouseY = e.clientY;
 });
 
-function animateCursor() {
-  glowX = lerp(glowX, mouseX, 0.08);
-  glowY = lerp(glowY, mouseY, 0.08);
-  glow.style.transform = `translate(${glowX}px, ${glowY}px)`;
-  requestAnimationFrame(animateCursor);
-}
-if (!isMobile) animateCursor();
+function animateCursor() {}   // stub — el tick del cursor custom maneja el glow
+
+// ─── CURSOR PERSONALIZADO ─────────────────────────────────────
+(function initCustomCursor() {
+  if (isMobile) return;
+
+  // Crear elementos
+  const dot  = document.createElement('div');
+  const ring = document.createElement('div');
+  dot.id  = 'cursor-dot';
+  ring.id = 'cursor-ring';
+  ring.setAttribute('data-label', 'Ver');
+  document.body.appendChild(dot);
+  document.body.appendChild(ring);
+
+  // Posiciones: dot sigue sin lag, ring con lerp
+  let mx = -200, my = -200;   // mouse real
+  let rx = -200, ry = -200;   // ring interpolado
+
+  // Actualizar posición del mouse al instante (dot)
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX;
+    my = e.clientY;
+    dot.style.transform = `translate(${mx}px, ${my}px)`;
+  });
+
+  // Ring: interpolación suave en cada frame
+  function tickRing() {
+    rx = lerp(rx, mx, 0.12);
+    ry = lerp(ry, my, 0.12);
+    ring.style.transform = `translate(${rx}px, ${ry}px)`;
+
+    // Mantener el cursor-glow sincronizado también
+    glowX = lerp(glowX, mx, 0.28);
+    glowY = lerp(glowY, my, 0.28);
+    glow.style.transform = `translate(${glowX}px, ${glowY}px)`;
+
+    requestAnimationFrame(tickRing);
+  }
+  tickRing();
+
+  // ── Gestión de estados del body ──────────────────────────────
+  const STATES = ['cursor-hover', 'cursor-card', 'cursor-click', 'cursor-text'];
+  function setState(state) {
+    STATES.forEach(s => document.body.classList.remove(s));
+    if (state) document.body.classList.add(state);
+  }
+
+  // Click — aplasta por 120ms
+  document.addEventListener('mousedown', () => {
+    document.body.classList.add('cursor-click');
+  });
+  document.addEventListener('mouseup', () => {
+    document.body.classList.remove('cursor-click');
+  });
+
+  // Hover sobre elementos interactivos
+  function onEnter(e) {
+    const t = e.currentTarget;
+    if (t.matches('.project-card:not(.project-card--placeholder)')) {
+      setState('cursor-card');
+    } else if (t.matches('input, textarea')) {
+      setState('cursor-text');
+    } else {
+      setState('cursor-hover');
+    }
+  }
+  function onLeave() {
+    setState(null);
+  }
+
+  // Selectores que activan hover
+  const hoverTargets = 'a, button, .btn-primary, .btn-ghost, .btn-cv, .skill-item, .contact-item, .nav-logo';
+  const cardTargets  = '.project-card:not(.project-card--placeholder)';
+  const textTargets  = 'input, textarea';
+
+  document.querySelectorAll(`${hoverTargets}, ${cardTargets}, ${textTargets}`).forEach(el => {
+    el.addEventListener('mouseenter', onEnter);
+    el.addEventListener('mouseleave', onLeave);
+  });
+
+  // Ocultar cuando el mouse sale de la ventana
+  document.addEventListener('mouseleave', () => {
+    dot.style.opacity  = '0';
+    ring.style.opacity = '0';
+  });
+  document.addEventListener('mouseenter', () => {
+    dot.style.opacity  = '';
+    ring.style.opacity = '';
+  });
+})();
 
 // ─── FLOATING ELEMENTS ────────────────────────────────────────
 const floaterData = [
