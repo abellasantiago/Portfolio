@@ -219,7 +219,7 @@ a.nav-logo { text-decoration: none; cursor: pointer; }
 #hero::before {
   content: 'SA';
   position: absolute;
-  bottom: var(--bg-text-y, -60px); right: -20px;
+  bottom: var(--bg-text-y, -60px); right: 40px;
   font-family: var(--font-display);
   font-weight: 800;
   font-size: clamp(180px, 28vw, 380px);
