@@ -365,6 +365,10 @@ a.nav-logo { text-decoration: none; cursor: pointer; }
   display: flex; align-items: center; justify-content: center;
   color: var(--text-muted);
   transition: border-color 0.2s, color 0.2s, transform 0.3s var(--ease-back);
+  font-family: var(--font-mono);
+  line-height: 1;
+  padding: 0;
+  transform-origin: center center;
 }
 #btn-tema:hover {
   border-color: var(--accent); color: var(--accent);
@@ -924,6 +928,7 @@ footer {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 /* ─── HAMBURGER BUTTON ────────────────────────────────────── */
