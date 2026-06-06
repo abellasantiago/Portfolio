@@ -26,16 +26,16 @@
 }
 
 body.claro {
-  --bg:           #f0f0ee;
-  --bg2:          #e8e8e5;
-  --surface:      #e0e0dc;
-  --border:       #d0d0cc;
-  --text:         #111111;
-  --text-muted:   #888;
-  --text-dim:     #d0d0cc;
-  --accent:       #1a1a1a;
-  --accent-rgb:   26, 26, 26;
-  --accent-dim:   rgba(26, 26, 26, 0.06);
+  --bg:           #f8f8f6;
+  --bg2:          #f1f0ec;
+  --surface:      #e9e8e3;
+  --border:       #dddcd7;
+  --text:         #0c0c0c;
+  --text-muted:   #7a7975;
+  --text-dim:     #cecdca;
+  --accent:       #5b4cff;
+  --accent-rgb:   91, 76, 255;
+  --accent-dim:   rgba(91, 76, 255, 0.07);
 }
 
 /* --- RESET --- */
@@ -152,7 +152,16 @@ body::after {
   transition: border-color 0.3s, background 0.5s;
 }
 
-body.claro #navbar { background: rgba(240,240,238,0.75); }
+body.claro #navbar { background: rgba(248,248,246,0.82); }
+
+/* Grain más sutil en modo claro */
+body.claro::after { opacity: 0.18; }
+
+/* Skill dots en claro: usar border como base visible */
+body.claro .skill-item::before { background: var(--border); }
+
+/* Footer text legible en claro */
+body.claro .footer-copy { color: var(--text-muted); }
 
 #navbar.scrolled { border-bottom-color: var(--border); }
 
