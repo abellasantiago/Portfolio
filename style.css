@@ -743,6 +743,35 @@ footer {
 .visible .item       { transition-delay: calc(var(--i, 0) * 0.07s); }
 .visible .skill-item { transition-delay: calc(var(--i, 0) * 0.04s); }
 
+/* ─── SOBRE MÍ — REVEAL DESDE ABAJO ──────────────────────── */
+.sobre-mi-section { /* estado inicial seteado por JS */ }
+
+.sm-num {
+  display: inline-block;
+}
+
+.sm-title-wrap {
+  display: inline-block;
+}
+
+.sm-body {
+  position: relative;
+}
+/* Línea que se dibuja cuando entra en viewport */
+.sm-body::before {
+  content: '';
+  display: block;
+  height: 1px;
+  width: 0;
+  background: var(--border);
+  margin-bottom: 32px;
+  transition: width 0.9s var(--ease);
+}
+.sobre-mi-section.sm-visible .sm-body::before {
+  width: 100%;
+}
+
+
 /* ─── PROYECTOS ───────────────────────────────────────────── */
 .project-grid {
   display: grid;
