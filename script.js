@@ -410,66 +410,6 @@ function animateCursor() {}   // stub — el tick del cursor custom maneja el gl
   });
 })();
 
-// ─── MAGNETIC NAVBAR LINKS ───────────────────────────────────
-(function initMagnetic() {
-  if (isMobile) return;
-
-  const STRENGTH = 0.38;   // qué tanto se desplaza el texto (0–1)
-  const RADIUS   = 90;     // px de alcance magnético
-
-  document.querySelectorAll('#navbar ul a, #navbar .nav-logo, #navbar #btn-tema').forEach(el => {
-    let animId = null;
-    let curTx = 0, curTy = 0;
-
-    function tick(targetTx, targetTy) {
-      curTx = lerp(curTx, targetTx, 0.14);
-      curTy = lerp(curTy, targetTy, 0.14);
-      el.style.transform = `translate(${curTx.toFixed(2)}px, ${curTy.toFixed(2)}px)`;
-
-      if (Math.abs(curTx - targetTx) > 0.15 || Math.abs(curTy - targetTy) > 0.15) {
-        animId = requestAnimationFrame(() => tick(targetTx, targetTy));
-      } else {
-        el.style.transform = `translate(${targetTx}px, ${targetTy}px)`;
-        animId = null;
-      }
-    }
-
-    el.addEventListener('mousemove', e => {
-      const rect = el.getBoundingClientRect();
-      const cx = rect.left + rect.width  / 2;
-      const cy = rect.top  + rect.height / 2;
-      const dx = e.clientX - cx;
-      const dy = e.clientY - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-
-      if (dist < RADIUS) {
-        const pull = (1 - dist / RADIUS);
-        const tx = dx * pull * STRENGTH * (RADIUS / 50);
-        const ty = dy * pull * STRENGTH * (RADIUS / 50);
-        cancelAnimationFrame(animId);
-        tick(tx, ty);
-      }
-    });
-
-    el.addEventListener('mouseleave', () => {
-      cancelAnimationFrame(animId);
-      // Volver al origen con lerp
-      function release() {
-        curTx = lerp(curTx, 0, 0.1);
-        curTy = lerp(curTy, 0, 0.1);
-        el.style.transform = `translate(${curTx.toFixed(2)}px, ${curTy.toFixed(2)}px)`;
-        if (Math.abs(curTx) > 0.05 || Math.abs(curTy) > 0.05) {
-          animId = requestAnimationFrame(release);
-        } else {
-          el.style.transform = '';
-          animId = null;
-        }
-      }
-      release();
-    });
-  });
-})();
-
 // ─── FLOATING ELEMENTS ────────────────────────────────────────
 const floaterData = [
   // [x%, y%, size, speed, opacity, shape]
