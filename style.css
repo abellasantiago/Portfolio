@@ -215,21 +215,6 @@ a.nav-logo { text-decoration: none; cursor: pointer; }
   position: relative; overflow: hidden;
 }
 
-/* Giant background letters */
-#hero::before {
-  content: 'SA';
-  position: absolute;
-  bottom: var(--bg-text-y, -60px); right: 40px;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: clamp(180px, 28vw, 380px);
-  color: transparent;
-  -webkit-text-stroke: 1px var(--border);
-  line-height: 1; user-select: none; pointer-events: none;
-  letter-spacing: -0.04em;
-  transition: -webkit-text-stroke-color 0.5s;
-  will-change: bottom;
-}
 
 .hero-inner {
   max-width: 900px;
