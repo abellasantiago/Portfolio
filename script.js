@@ -21,6 +21,37 @@ window.addEventListener('scroll', () => {
   document.getElementById('navbar').classList.toggle('scrolled', scrollY > 50);
 });
 
+// ─── SMOOTH SCROLL CON EASING ─────────────────────────────────
+function easeOutQuart(t) {
+  return 1 - Math.pow(1 - t, 4);
+}
+
+function smoothScrollTo(target, duration = 1300) {
+  const start = window.scrollY;
+  const distance = target - start;
+  const startTime = performance.now();
+
+  function step(now) {
+    const elapsed = now - startTime;
+    const progress = clamp(elapsed / duration, 0, 1);
+    window.scrollTo(0, start + distance * easeOutQuart(progress));
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+document.querySelectorAll('a[href^="#"]').forEach(link => {
+  link.addEventListener('click', e => {
+    const id = link.getAttribute('href').slice(1);
+    if (!id) return;
+    const target = document.getElementById(id);
+    if (!target) return;
+    e.preventDefault();
+    const navH = document.getElementById('navbar')?.offsetHeight || 0;
+    smoothScrollTo(target.getBoundingClientRect().top + window.scrollY - navH);
+  });
+});
+
 // ─── THEME TOGGLE ─────────────────────────────────────────────
 const btn = document.getElementById('btn-tema');
 btn.addEventListener('click', () => {
