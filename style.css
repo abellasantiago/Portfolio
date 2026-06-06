@@ -919,19 +919,116 @@ footer {
   letter-spacing: 0.08em;
 }
 
+/* ─── NAV RIGHT (agrupa tema + hamburger) ─────────────────── */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ─── HAMBURGER BUTTON ────────────────────────────────────── */
+#nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  width: 34px; height: 34px;
+  padding: 7px 8px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+#nav-toggle span {
+  display: block;
+  width: 100%; height: 1px;
+  background: var(--text-muted);
+  transition: transform 0.3s var(--ease), opacity 0.2s, background 0.2s;
+  transform-origin: center;
+}
+#nav-toggle:hover { border-color: var(--accent); }
+#nav-toggle:hover span { background: var(--accent); }
+
+/* Estado abierto: X */
+#navbar.nav-open #nav-toggle span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+#navbar.nav-open #nav-toggle span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+#navbar.nav-open #nav-toggle span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
 /* ─── RESPONSIVE ──────────────────────────────────────────── */
 @media (max-width: 700px) {
+  /* Restaurar cursor en touch */
+  body, a, button, [role="button"] { cursor: auto !important; }
+  a, button { cursor: pointer !important; }
+
+  /* Navbar */
   #navbar { padding: 0 20px; }
-  #navbar ul { gap: 18px; }
-  #navbar ul a { font-size: 10px; }
+  #nav-toggle { display: flex; }
+
+  /* Menú desplegable mobile */
+  #nav-links {
+    position: fixed;
+    top: var(--nav-h); left: 0; right: 0;
+    background: rgba(8, 8, 8, 0.97);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    flex-direction: column;
+    gap: 0;
+    padding: 8px 0 20px;
+    border-bottom: 1px solid var(--border);
+    transform: translateY(-110%);
+    transition: transform 0.4s var(--ease), opacity 0.3s;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 999;
+  }
+  body.claro #nav-links { background: rgba(245, 244, 240, 0.97); }
+
+  #navbar.nav-open #nav-links {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  #nav-links li { width: 100%; }
+  #nav-links a {
+    display: block;
+    font-size: 12px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.1em;
+  }
+  #nav-links li:last-child a { border-bottom: none; }
+  #nav-links a:hover { color: var(--accent); background: var(--accent-dim); }
+  #nav-links a::after { display: none; }
+
+  /* Hero */
   #hero { padding: 100px 24px 80px; }
   #hero::before { font-size: 42vw; }
+
+  /* Secciones */
   section:not(#hero) { padding: 64px 24px; }
+
+  /* Items experiencia/educación */
   .item { grid-template-columns: 1fr; }
   .fecha { order: -1; margin-bottom: 4px; }
+
+  /* Hero scroll indicator */
   .hero-scroll { display: none; }
+
+  /* Grids */
   .contact-grid { grid-template-columns: 1fr; }
   .project-grid { grid-template-columns: 1fr; }
+
+  /* Overflow en email/valores de contacto */
+  .contact-value { font-size: 13px; word-break: break-all; }
+
+  /* Footer */
   footer { flex-direction: column; gap: 12px; padding: 32px 24px; }
+
+  /* Cursor glow */
   #cursor-glow { display: none; }
+
+  /* Skills grid — min 2 columnas cómodas */
+  .skills-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 }

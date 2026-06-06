@@ -1085,6 +1085,39 @@ document.querySelectorAll('.contact-item').forEach(el => {
   setTimeout(fireGlitch, 3000);
 })();
 
+// ─── HAMBURGER MENU (MOBILE) ─────────────────────────────────
+(function initMobileNav() {
+  const toggle  = document.getElementById('nav-toggle');
+  const navbar  = document.getElementById('navbar');
+  const navLinks = document.getElementById('nav-links');
+  if (!toggle || !navbar) return;
+
+  function closeMenu() {
+    navbar.classList.remove('nav-open');
+    toggle.setAttribute('aria-expanded', 'false');
+    lenis.start();
+  }
+
+  toggle.addEventListener('click', () => {
+    const isOpen = navbar.classList.toggle('nav-open');
+    toggle.setAttribute('aria-expanded', String(isOpen));
+    // Pausar scroll suave mientras el menú está abierto
+    if (isOpen) lenis.stop(); else lenis.start();
+  });
+
+  // Cerrar al hacer click en un link
+  if (navLinks) {
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', closeMenu);
+    });
+  }
+
+  // Cerrar con Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeMenu();
+  });
+})();
+
 // ─── MAIN LOOP ────────────────────────────────────────────────
 function loop(time) {
   lenisRaf(time);
