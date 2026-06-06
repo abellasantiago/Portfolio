@@ -871,6 +871,149 @@ document.querySelectorAll('.contact-item').forEach(el => {
     this.style.transform = `translate(0px, 0px) scale(1)`;
   });
 });
+// ─── TILT 3D EN PROJECT CARDS ────────────────────────────────
+(function initTilt3D() {
+  if (isMobile) return;
+
+  const PERSPECTIVE = 600;
+  const MAX_TILT    = 10;
+  const LIFT        = 6;
+  const SHINE_ALPHA = 0.07;
+
+  document.querySelectorAll('.project-card:not(.project-card--placeholder)').forEach(card => {
+    const shine = document.createElement('div');
+    shine.style.cssText = `
+      position:absolute; inset:0; border-radius:inherit;
+      background:radial-gradient(circle at 50% 50%, rgba(255,255,255,${SHINE_ALPHA}), transparent 70%);
+      pointer-events:none; opacity:0; transition:opacity 0.3s; z-index:3;
+    `;
+    card.appendChild(shine);
+    card.style.transformStyle = 'preserve-3d';
+    card.style.transition     = 'transform 0.15s ease, background 0.3s';
+
+    card.addEventListener('mouseenter', function() {
+      if (parseFloat(this.style.opacity) < 0.85) return;
+      shine.style.opacity = '1';
+    });
+    card.addEventListener('mousemove', function(e) {
+      if (parseFloat(this.style.opacity) < 0.85) return;
+      const rect = this.getBoundingClientRect();
+      const nx = (e.clientX - rect.left)  / rect.width  - 0.5;
+      const ny = (e.clientY - rect.top)   / rect.height - 0.5;
+      const ry =  nx * MAX_TILT * 2;
+      const rx = -ny * MAX_TILT;
+      this.style.transform  = `perspective(${PERSPECTIVE}px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(${LIFT}px)`;
+      this.style.transition = 'transform 0.08s ease';
+      const sx = (nx + 0.5) * 100;
+      const sy = (ny + 0.5) * 100;
+      shine.style.background = `radial-gradient(circle at ${sx}% ${sy}%, rgba(255,255,255,${SHINE_ALPHA * 2}), transparent 65%)`;
+    });
+    card.addEventListener('mouseleave', function() {
+      this.style.transition = 'transform 0.45s cubic-bezier(0.34,1.56,0.64,1)';
+      this.style.transform  = 'perspective(600px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
+      shine.style.opacity   = '0';
+    });
+  });
+})();
+
+// ─── CONTADORES ANIMADOS EN STAT-NUM ─────────────────────────
+(function initCounters() {
+  const statEls = document.querySelectorAll('.stat-num');
+  if (!statEls.length) return;
+
+  statEls.forEach(el => {
+    const raw    = el.textContent.trim();
+    const num    = parseInt(raw, 10);
+    const suffix = raw.replace(String(num), '');
+    el.dataset.target = num;
+    el.dataset.suffix = suffix;
+    el.dataset.done   = '0';
+    el.textContent    = '0' + suffix;
+  });
+
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+  function animateCounter(el) {
+    if (el.dataset.done === '1') return;
+    el.dataset.done = '1';
+    const target   = parseInt(el.dataset.target, 10);
+    const suffix   = el.dataset.suffix;
+    const duration = 1000 + target * 8;
+    const start    = performance.now();
+    function step(now) {
+      const progress = clamp((now - start) / duration, 0, 1);
+      el.textContent = Math.round(easeOutCubic(progress) * target) + suffix;
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  const counterObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      entry.target.querySelectorAll('.stat-num').forEach(animateCounter);
+      counterObserver.unobserve(entry.target);
+    });
+  }, { threshold: 0.6 });
+
+  document.querySelectorAll('.project-footer').forEach(f => counterObserver.observe(f));
+})();
+
+// ─── GLITCH OCASIONAL EN EL LOGO SA ──────────────────────────
+(function initLogoGlitch() {
+  const logo = document.querySelector('.nav-logo');
+  if (!logo) return;
+
+  const s = document.createElement('style');
+  s.textContent = `
+    .nav-logo { position: relative; }
+    .nav-logo::before, .nav-logo::after {
+      content: attr(data-text);
+      position: absolute; inset: 0;
+      pointer-events: none; opacity: 0;
+      font-size: inherit; font-weight: inherit;
+      letter-spacing: inherit; text-transform: inherit;
+    }
+    .nav-logo::before { color: #ff3b3b; mix-blend-mode: screen; clip-path: inset(0 0 50% 0); }
+    .nav-logo::after  { color: #00e5ff; mix-blend-mode: screen; clip-path: inset(50% 0 0 0); }
+    @keyframes glitch-r {
+      0%  { transform:translate(0,0);    opacity:0; }
+      10% { transform:translate(3px,0);  opacity:0.85; }
+      20% { transform:translate(-2px,1px); opacity:0.7; }
+      30% { transform:translate(0,0);    opacity:0; }
+      100%{ opacity:0; }
+    }
+    @keyframes glitch-c {
+      0%  { transform:translate(0,0);    opacity:0; }
+      10% { transform:translate(-3px,0); opacity:0.8; }
+      20% { transform:translate(2px,-1px); opacity:0.65; }
+      30% { transform:translate(0,0);    opacity:0; }
+      100%{ opacity:0; }
+    }
+    .nav-logo.glitching::before { animation: glitch-r 0.22s steps(1) forwards; }
+    .nav-logo.glitching::after  { animation: glitch-c 0.22s steps(1) forwards; }
+  `;
+  document.head.appendChild(s);
+  logo.setAttribute('data-text', logo.textContent);
+
+  function fireGlitch() {
+    let pulses = 0;
+    const pulse = setInterval(() => {
+      logo.classList.remove('glitching');
+      void logo.offsetWidth;
+      logo.classList.add('glitching');
+      pulses++;
+      if (pulses >= 3) {
+        clearInterval(pulse);
+        setTimeout(() => logo.classList.remove('glitching'), 250);
+      }
+    }, 120);
+    setTimeout(fireGlitch, 4000 + Math.random() * 5000);
+  }
+  setTimeout(fireGlitch, 3000);
+})();
+
+// ─── MAIN LOOP ────────────────────────────────────────────────
 function loop() {
   parallaxHero();
   parallaxSections();

@@ -660,6 +660,7 @@ footer {
   gap: 1px;
   background: var(--border);
   border: 1px solid var(--border);
+  perspective: 1000px;
 }
 
 .project-card {
@@ -672,6 +673,8 @@ footer {
   overflow: hidden;
   transition: background 0.3s;
   will-change: transform, opacity;
+  transform-style: preserve-3d;
+  isolation: isolate;
 }
 
 .project-card::before {
