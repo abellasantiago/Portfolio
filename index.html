@@ -28,7 +28,7 @@
 <!-- NAVBAR -->
 <nav id="navbar">
   <a href="#" class="nav-logo">S<span>A</span></a>
-  <ul>
+  <ul id="nav-links">
     <li><a href="#sobre-mi">Sobre mí</a></li>
     <li><a href="#experiencia">Experiencia</a></li>
     <li><a href="#educacion">Educación</a></li>
@@ -36,7 +36,12 @@
     <li><a href="#habilidades">Habilidades</a></li>
     <li><a href="#contacto">Contacto</a></li>
   </ul>
-  <button id="btn-tema" title="Cambiar tema">◐</button>
+  <div class="nav-right">
+    <button id="btn-tema" title="Cambiar tema">◐</button>
+    <button id="nav-toggle" aria-label="Menú" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
 </nav>
 
 <!-- HERO -->
