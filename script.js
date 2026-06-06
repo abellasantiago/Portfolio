@@ -150,7 +150,7 @@ function initGridCells() {
 function updateGridCells() {
   const wh = window.innerHeight;
   // Read accent color for ghost border
-  const accentRgb = getComputedStyle(document.documentElement)
+  const accentRgb = getComputedStyle(document.body)
     .getPropertyValue('--accent-rgb').trim() || '200,241,53';
 
   ['.skills-grid', '.contact-grid'].forEach(selector => {
@@ -180,9 +180,15 @@ function updateGridCells() {
       const opacity = Math.min(eased * 1.8, 1);   // fades in quicker than it moves
 
       // Ghost border: visible while flying, fades out as cell lands
-      // inFlight goes 0→1→0: peaks mid-flight, gone when settled
+      // In light mode keep a base opacity so cells don't disappear into the bg
+      const isLight     = document.body.classList.contains('claro');
       const inFlight    = Math.sin(eased * Math.PI);  // bell curve 0→1→0
-      const borderAlpha = inFlight * 0.30;             // max 0.30 opacity — tenuo
+      // Dark: subtle ghost border only during flight
+      // Light: strong border while moving, stays faintly visible when settled
+      const baseBorder  = isLight ? 0.18 : 0;
+      const flightPeak  = isLight ? 0.72 : 0.55;
+      const settled     = isLight ? 0.18 * (1 - eased * eased) : 0;
+      const borderAlpha = settled + inFlight * flightPeak + baseBorder * (1 - eased);
 
       cell.style.transition  = 'none';
       cell.style.opacity     = opacity;
@@ -241,8 +247,6 @@ function parallaxHero() {
     cta.style.opacity = 1 - progress * 2.5;
   }
 
-  // Fondo "SA" se mueve en dirección opuesta (zoom out effect)
-  hero.style.setProperty('--bg-text-y', `${-sy * 0.06}px`);
 }
 
 // ─── PARALLAX SECTIONS ────────────────────────────────────────
@@ -589,7 +593,7 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
 
   // Read accent color from CSS variable
   function getAccentRGB() {
-    const raw = getComputedStyle(document.documentElement)
+    const raw = getComputedStyle(document.body)
       .getPropertyValue('--accent-rgb').trim();
     if (raw) {
       const parts = raw.split(',').map(s => parseInt(s.trim(), 10));
@@ -645,9 +649,9 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
       if (this.y > H + 20) this.y = -20;
     }
 
-    draw(rgb) {
+    draw(rgb, boost = 1) {
       const pulse = 0.7 + 0.3 * Math.sin(this.phase);
-      const alpha = this.baseAlpha * pulse;
+      const alpha = Math.min(this.baseAlpha * pulse * boost, 0.95);
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.r * pulse, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
@@ -664,6 +668,9 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
 
   function drawNeural() {
     const rgb = getAccentRGB();
+    const isLight    = document.body.classList.contains('claro');
+    const boost      = isLight ? 5.5 : 1;
+    const lineBoost  = isLight ? 7.0 : 1;
     ctx.clearRect(0, 0, W, H);
 
     // Update + collect positions
@@ -680,7 +687,7 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
         if (dist > CFG.maxDist) continue;
 
         // Fade line by distance
-        let alpha = (1 - dist / CFG.maxDist) * CFG.lineMaxAlpha;
+        let alpha = (1 - dist / CFG.maxDist) * CFG.lineMaxAlpha * lineBoost;
 
         // Boost lines near mouse
         const midX = (a.x + b.x) / 2;
@@ -688,8 +695,8 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
         const mdx = midX - nmx, mdy = midY - nmy;
         const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
         if (mdist < CFG.mouseRadius) {
-          const boost = (1 - mdist / CFG.mouseRadius);
-          alpha = Math.min(alpha + boost * CFG.mouseLineAlpha, CFG.mouseLineAlpha);
+          const mouseB = (1 - mdist / CFG.mouseRadius);
+          alpha = Math.min(alpha + mouseB * CFG.mouseLineAlpha * lineBoost, CFG.mouseLineAlpha * lineBoost);
         }
 
         ctx.beginPath();
@@ -715,15 +722,17 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
     }
 
     // Draw particles on top
-    particles.forEach(p => p.draw(rgb));
+    particles.forEach(p => p.draw(rgb, boost));
 
     // Draw a small glowing dot at mouse position (only when in window)
     if (nmx > 0) {
-      const grad = ctx.createRadialGradient(nmx, nmy, 0, nmx, nmy, 8);
-      grad.addColorStop(0, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.6)`);
+      const dotAlpha = isLight ? 0.85 : 0.6;
+      const dotRadius = isLight ? 10 : 8;
+      const grad = ctx.createRadialGradient(nmx, nmy, 0, nmx, nmy, dotRadius);
+      grad.addColorStop(0, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${dotAlpha})`);
       grad.addColorStop(1, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0)`);
       ctx.beginPath();
-      ctx.arc(nmx, nmy, 8, 0, Math.PI * 2);
+      ctx.arc(nmx, nmy, dotRadius, 0, Math.PI * 2);
       ctx.fillStyle = grad;
       ctx.fill();
     }
