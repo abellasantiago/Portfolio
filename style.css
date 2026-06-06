@@ -157,11 +157,12 @@ body.claro #navbar { background: rgba(240,240,238,0.75); }
 #navbar.scrolled { border-bottom-color: var(--border); }
 
 .nav-logo {
-  font-size: 14px; font-weight: 800;
+  font-size: 18px; font-weight: 800;
   letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--text);
 }
 .nav-logo span { color: var(--accent); }
+a.nav-logo { text-decoration: none; cursor: pointer; }
 
 #navbar ul { list-style: none; display: flex; gap: 36px; }
 
