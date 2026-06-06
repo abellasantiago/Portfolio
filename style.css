@@ -166,7 +166,7 @@ body.claro .footer-copy { color: var(--text-muted); }
 #navbar.scrolled { border-bottom-color: var(--border); }
 
 .nav-logo {
-  font-size: 18px; font-weight: 800;
+  font-size: 26px; font-weight: 800;
   letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--text);
 }
