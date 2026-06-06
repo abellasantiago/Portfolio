@@ -70,7 +70,7 @@ const revealObserver = new IntersectionObserver(entries => {
 document.querySelectorAll('.oculto').forEach(el => revealObserver.observe(el));
 
 // ─── STAGGER ITEMS INSIDE SECTIONS ───────────────────────────
-document.querySelectorAll('.item, .skill-item, .contact-item').forEach((el, i) => {
+document.querySelectorAll('.item, .skill-item, .contact-item, .project-card').forEach((el, i) => {
   el.style.transitionDelay = `${(i % 6) * 0.07}s`;
 });
 
@@ -143,8 +143,10 @@ function initGridCells() {
 
   const skillGrid   = document.querySelector('.skills-grid');
   const contactGrid = document.querySelector('.contact-grid');
+  const projectGrid = document.querySelector('.project-grid');
   if (skillGrid)   prepareGrid(skillGrid,   getComputedCols(skillGrid));
   if (contactGrid) prepareGrid(contactGrid, getComputedCols(contactGrid));
+  if (projectGrid) prepareGrid(projectGrid, getComputedCols(projectGrid));
 }
 
 function updateGridCells() {
@@ -153,7 +155,7 @@ function updateGridCells() {
   const accentRgb = getComputedStyle(document.body)
     .getPropertyValue('--accent-rgb').trim() || '200,241,53';
 
-  ['.skills-grid', '.contact-grid'].forEach(selector => {
+  ['.skills-grid', '.contact-grid', '.project-grid'].forEach(selector => {
     const grid = document.querySelector(selector);
     if (!grid) return;
 
