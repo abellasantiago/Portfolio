@@ -354,15 +354,34 @@ function animateFloaters() {
 }
 
 // ─── HORIZONTAL SCROLL TICKER ─────────────────────────────────
-let tickerX = 0;
-function animateTicker() {
-  const ticker = document.querySelector('.ticker-inner');
-  if (!ticker) return;
-  tickerX -= 0.5;
-  const totalW = ticker.scrollWidth / 2;
-  if (Math.abs(tickerX) >= totalW) tickerX = 0;
-  ticker.style.transform = `translateX(${tickerX}px)`;
+function animateTicker() {}
+
+function setupTicker() {
+  const inner = document.querySelector('.ticker-inner');
+  if (!inner) return;
+  const template = inner.querySelector('span');
+  if (!template) return;
+
+  // Medir ancho de una copia
+  const spanW = template.getBoundingClientRect().width;
+  if (spanW === 0) return;
+
+  // Clonar hasta llenar más del ancho de pantalla (set A)
+  const copiesNeeded = Math.ceil(window.innerWidth / spanW) + 2;
+  for (let i = 1; i < copiesNeeded; i++) {
+    inner.appendChild(template.cloneNode(true));
+  }
+
+  // Duplicar todo el set para tener set A + set B (loop perfecto)
+  const setA = Array.from(inner.children);
+  setA.forEach(el => inner.appendChild(el.cloneNode(true)));
+
+  // La animación CSS mueve -50% (= ancho de set A), loop infinito sin salto
+  const duration = (spanW * copiesNeeded) / 130; // ~130px/s
+  inner.style.animationDuration = `${duration}s`;
 }
+
+setupTicker();
 
 // ─── SECTION PROGRESS LINE ────────────────────────────────────
 function updateProgress() {
