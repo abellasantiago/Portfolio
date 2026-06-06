@@ -3,6 +3,46 @@
    Sistema de parallax + elementos flotantes + scroll cinema
    ============================================================ */
 
+// ─── INTRO TRANSITION ────────────────────────────────────────
+(function initIntro() {
+  const overlay = document.getElementById('intro-overlay');
+  const linesEl = document.getElementById('intro-lines');
+  const nameEl  = document.getElementById('intro-name');
+  if (!overlay) return;
+
+  // Bloquear scroll mientras el intro corre
+  document.body.style.overflow = 'hidden';
+
+  const lines = [
+    { text: '> init portfolio.js',            cls: 'accent', delay: 0 },
+    { text: '// loading modules...',           cls: 'dim',    delay: 220 },
+    { text: '> import { skills } from "./src"',cls: '',       delay: 420 },
+    { text: '✓ C# · Python · .NET · SQL',     cls: 'dim',    delay: 680 },
+    { text: '> render( &lt;Portfolio /&gt; )', cls: 'accent', delay: 940 },
+    { text: '// ready.',                       cls: 'dim',    delay: 1180 },
+  ];
+
+  lines.forEach(({ text, cls, delay }) => {
+    const s = document.createElement('span');
+    if (cls) s.classList.add(cls);
+    s.innerHTML = text;
+    linesEl.appendChild(s);
+    setTimeout(() => s.classList.add('show'), delay + 100);
+  });
+
+  // Mostrar nombre grande
+  setTimeout(() => nameEl.classList.add('show'), 700);
+
+  // Wipe out: clip-path desde abajo hacia arriba
+  setTimeout(() => {
+    overlay.classList.add('wipe-out');
+    overlay.addEventListener('transitionend', () => {
+      overlay.classList.add('done');
+      document.body.style.overflow = '';
+    }, { once: true });
+  }, 1800);
+})();
+
 // ─── UTILS ───────────────────────────────────────────────────
 const lerp = (a, b, t) => a + (b - a) * t;
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max);

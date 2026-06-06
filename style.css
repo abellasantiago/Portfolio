@@ -61,6 +61,96 @@ body::after {
   opacity: 0.5;
 }
 
+/* ─── INTRO OVERLAY ──────────────────────────────────────── */
+#intro-overlay {
+  position: fixed;
+  inset: 0;
+  background: #050505;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  transition: clip-path 0.9s cubic-bezier(0.76, 0, 0.24, 1);
+  pointer-events: all;
+}
+
+#intro-overlay.wipe-out {
+  clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+}
+
+#intro-overlay.done {
+  display: none;
+}
+
+#intro-terminal {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 1.4vw, 14px);
+  color: #3a3a3a;
+  max-width: 420px;
+  width: 90%;
+  line-height: 1.9;
+  position: relative;
+}
+
+#intro-lines span {
+  display: block;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  white-space: nowrap;
+}
+
+#intro-lines span.show {
+  max-height: 2em;
+  opacity: 1;
+}
+
+#intro-lines span.accent {
+  color: var(--accent);
+}
+
+#intro-lines span.dim {
+  color: #1e1e1e;
+}
+
+#intro-cursor {
+  display: inline-block;
+  color: var(--accent);
+  font-size: 1.1em;
+  animation: blink 0.7s step-end infinite;
+  vertical-align: middle;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+#intro-name {
+  position: absolute;
+  bottom: clamp(24px, 5vw, 52px);
+  right: clamp(24px, 5vw, 52px);
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 12vw, 10rem);
+  font-weight: 800;
+  color: transparent;
+  -webkit-text-stroke: 1px #1e1e1e;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  user-select: none;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+#intro-name.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* ─── PROGRESS LINE ───────────────────────────────────────── */
 #progress-line {
   position: fixed;
