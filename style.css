@@ -348,6 +348,22 @@ a.nav-logo { text-decoration: none; cursor: pointer; }
   box-shadow: 0 8px 30px rgba(var(--accent-rgb), 0.3);
 }
 
+.btn-cv {
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-muted); text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 13px 0;
+  transition: color 0.2s;
+}
+.btn-cv:hover { color: var(--text); }
+@keyframes cv-dl {
+  0%   { transform: translateY(0); }
+  45%  { transform: translateY(6px); }
+  70%  { transform: translateY(2px); }
+  100% { transform: translateY(4px); }
+}
+
 .btn-ghost {
   font-family: var(--font-mono);
   font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
@@ -359,6 +375,8 @@ a.nav-logo { text-decoration: none; cursor: pointer; }
 .btn-ghost::after { content: '↗'; transition: transform 0.25s var(--ease); }
 .btn-ghost:hover { color: var(--text); }
 .btn-ghost:hover::after { transform: translate(3px, -3px); }
+.btn-cv::after { content: '↓'; transition: none; }
+.btn-cv:hover::after { transform: none; animation: cv-dl 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 
 .hero-scroll {
   position: absolute; bottom: 40px; right: 40px;
