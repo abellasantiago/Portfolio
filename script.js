@@ -15,31 +15,27 @@ let targetScrollY = 0;
 let raf;
 const isMobile = window.innerWidth < 700;
 
-// ─── NAVBAR SCROLL ────────────────────────────────────────────
-window.addEventListener('scroll', () => {
-  scrollY = window.scrollY;
-  document.getElementById('navbar').classList.toggle('scrolled', scrollY > 50);
+// ─── LENIS SMOOTH SCROLL ──────────────────────────────────────
+const lenis = new Lenis({
+  duration:   1.4,
+  easing:     t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+  smoothWheel: true,
+  touchMultiplier: 1.5,
 });
 
-// ─── SMOOTH SCROLL CON EASING ─────────────────────────────────
-function easeOutQuart(t) {
-  return 1 - Math.pow(1 - t, 4);
-}
+// Lenis alimenta scrollY para que parallax y progress funcionen en sync
+lenis.on('scroll', ({ scroll }) => {
+  scrollY = scroll;
+  document.getElementById('navbar').classList.toggle('scrolled', scroll > 50);
+});
 
-function smoothScrollTo(target, duration = 1300) {
-  const start = window.scrollY;
-  const distance = target - start;
-  const startTime = performance.now();
+// Conectar Lenis al RAF principal (se llama desde loop())
+function lenisRaf(time) { lenis.raf(time); }
 
-  function step(now) {
-    const elapsed = now - startTime;
-    const progress = clamp(elapsed / duration, 0, 1);
-    window.scrollTo(0, start + distance * easeOutQuart(progress));
-    if (progress < 1) requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
-}
+// ─── NAVBAR SCROLL ────────────────────────────────────────────
+// (manejado por Lenis arriba)
 
+// ─── SMOOTH SCROLL CON LENIS ──────────────────────────────────
 document.querySelectorAll('a[href^="#"]').forEach(link => {
   link.addEventListener('click', e => {
     const id = link.getAttribute('href').slice(1);
@@ -48,7 +44,7 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
     if (!target) return;
     e.preventDefault();
     const navH = document.getElementById('navbar')?.offsetHeight || 0;
-    smoothScrollTo(target.getBoundingClientRect().top + window.scrollY - navH);
+    lenis.scrollTo(target, { offset: -navH, duration: 1.6 });
   });
 });
 
@@ -210,7 +206,7 @@ setTimeout(initGridCells, 60);
 // ─── PARALLAX HERO ───────────────────────────────────────────
 function parallaxHero() {
   if (isMobile) return;
-  const sy = window.scrollY;
+  const sy = scrollY;
   const hero = document.getElementById('hero');
   const heroH = hero.offsetHeight;
   const progress = clamp(sy / heroH, 0, 1);
@@ -254,7 +250,7 @@ function parallaxHero() {
 // ─── PARALLAX SECTIONS ────────────────────────────────────────
 function parallaxSections() {
   if (isMobile) return;
-  const sy = window.scrollY;
+  const sy = scrollY;
   const wh = window.innerHeight;
 
   document.querySelectorAll('section:not(#hero)').forEach(sec => {
@@ -433,8 +429,7 @@ buildFloaters();
 
 // ─── SCROLL-DRIVEN FLOATER PARALLAX ───────────────────────────
 function animateFloaters() {
-  const sy = window.scrollY;
-  const docH = document.body.offsetHeight;
+  const sy = scrollY;
 
   floaterEls.forEach(({ el, baseY, speed, shape }) => {
     if (speed === 0) return;
@@ -476,7 +471,7 @@ setupTicker();
 // ─── SECTION PROGRESS LINE ────────────────────────────────────
 function updateProgress() {
   const docH = document.documentElement.scrollHeight - window.innerHeight;
-  const progress = clamp(window.scrollY / docH, 0, 1);
+  const progress = clamp(scrollY / docH, 0, 1);
   const line = document.getElementById('progress-line');
   if (line) line.style.transform = `scaleX(${progress})`;
 }
@@ -1014,7 +1009,8 @@ document.querySelectorAll('.contact-item').forEach(el => {
 })();
 
 // ─── MAIN LOOP ────────────────────────────────────────────────
-function loop() {
+function loop(time) {
+  lenisRaf(time);
   parallaxHero();
   parallaxSections();
   animateFloaters();
