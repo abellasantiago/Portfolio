@@ -565,9 +565,9 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
   const CFG = {
     count:         42,       // number of particles
     maxDist:       150,      // connection draw distance (px)
-    mouseRadius:   200,      // mouse attraction radius
-    mouseForce:    0.012,    // how strongly mouse pulls particles
-    speed:         0.18,     // base drift speed
+    mouseRadius:   280,      // mouse attraction radius
+    mouseForce:    0.045,    // how strongly mouse pulls particles
+    speed:         0.28,     // base drift speed
     nodeSizeMin:   0.9,
     nodeSizeMax:   2.0,
     lineMaxAlpha:  0.10,     // max opacity of connecting lines
@@ -624,14 +624,14 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
       }
 
       // Dampen velocity so they don't fly away
-      this.vx *= 0.985;
-      this.vy *= 0.985;
+      this.vx *= 0.96;
+      this.vy *= 0.96;
 
       // Clamp speed
       const spd = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-      if (spd > CFG.speed * 3) {
-        this.vx = (this.vx / spd) * CFG.speed * 3;
-        this.vy = (this.vy / spd) * CFG.speed * 3;
+      if (spd > CFG.speed * 6) {
+        this.vx = (this.vx / spd) * CFG.speed * 6;
+        this.vy = (this.vy / spd) * CFG.speed * 6;
       }
 
       this.x += this.vx;
