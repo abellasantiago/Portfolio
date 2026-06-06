@@ -110,6 +110,43 @@ document.querySelectorAll('.item, .skill-item, .contact-item, .project-card').fo
   el.style.transitionDelay = `${(i % 6) * 0.07}s`;
 });
 
+// ─── SOBRE MÍ — REVEAL DESDE ABAJO ──────────────────────────
+(function () {
+  const section = document.getElementById('sobre-mi');
+  if (!section) return;
+
+  const targets = [
+    { el: section.querySelector('.sm-num'),           delay: 0 },
+    { el: section.querySelector('.sm-title-wrap h2'), delay: 80 },
+    { el: section.querySelectorAll('.sm-p')[0],       delay: 200 },
+    { el: section.querySelectorAll('.sm-p')[1],       delay: 360 },
+  ].filter(t => t.el);
+
+  // Estado inicial: escondido abajo
+  targets.forEach(({ el }) => {
+    el.style.opacity   = '0';
+    el.style.transform = 'translateY(60px)';
+    el.style.transition = 'opacity 0.85s cubic-bezier(0.16,1,0.3,1), transform 0.85s cubic-bezier(0.16,1,0.3,1)';
+  });
+
+  const obs = new IntersectionObserver(entries => {
+    if (!entries[0].isIntersecting) return;
+    obs.disconnect();
+
+    targets.forEach(({ el, delay }) => {
+      setTimeout(() => {
+        el.style.opacity   = '1';
+        el.style.transform = 'translateY(0)';
+      }, delay);
+    });
+
+    // Línea decorativa
+    setTimeout(() => section.classList.add('sm-visible'), 250);
+  }, { threshold: 0.15 });
+
+  obs.observe(section);
+})();
+
 // ─── GRID BUILD / UNBUILD ON SCROLL ──────────────────────────
 // Each cell flies in from OUTSIDE the viewport — chaotically
 
