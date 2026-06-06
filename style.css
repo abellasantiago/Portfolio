@@ -296,7 +296,7 @@ body.claro::after { opacity: 0.45; }
 
 /* Secciones opacas — bloquean el canvas de partículas en el centro */
 body.claro section:not(#hero) {
-  background: var(--bg);
+  background: #ffffff;
   box-shadow: 0 1px 0 var(--border), 0 4px 32px rgba(0,0,0,0.04);
   border-radius: 2px;
   border-bottom-color: transparent;
@@ -305,8 +305,20 @@ body.claro section:not(#hero) {
 /* Ticker opaco en claro */
 body.claro .ticker { background: var(--bg); }
 
+/* Cards y grids en modo claro */
+body.claro .skills-grid,
+body.claro .contact-grid,
+body.claro .project-grid { background: var(--border); }
+
+body.claro .skill-item,
+body.claro .contact-item,
+body.claro .project-card { background: #ffffff; }
+
+body.claro .project-card:hover { background: #f8f8ff; }
+body.claro .project-card--placeholder:hover { background: #ffffff; }
+
 /* Skill dots en claro: usar border como base visible */
-body.claro .skill-item::before { background: var(--border); }
+body.claro .skill-item::before { background: rgba(var(--accent-rgb), 0.6); }
 
 /* Floaters más presentes en claro */
 body.claro .floater-circle {
@@ -573,6 +585,9 @@ section:not(#hero) {
 }
 
 section:last-of-type { border-bottom: none; }
+
+/* Proyectos por encima de habilidades para que los skill items animen desde atrás */
+#proyectos { z-index: 3; }
 
 .section-header {
   display: flex; align-items: baseline; gap: 16px;
