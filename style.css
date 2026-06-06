@@ -12,7 +12,7 @@
   --surface:      #1a1a1a;
   --border:       #222222;
   --text:         #e8e8e8;
-  --text-muted:   #555;
+  --text-muted:   #8a8a8a;
   --text-dim:     #2a2a2a;
   --accent:       #c8f135;
   --accent-rgb:   200, 241, 53;
@@ -31,7 +31,7 @@ body.claro {
   --surface:      #e4e3e0;
   --border:       #d0ceca;
   --text:         #0c0c0c;
-  --text-muted:   #6e6b67;
+  --text-muted:   #4a4845;
   --text-dim:     #bfbdb9;
   --accent:       #5b4cff;
   --accent-rgb:   91, 76, 255;
