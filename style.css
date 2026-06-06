@@ -26,16 +26,16 @@
 }
 
 body.claro {
-  --bg:           #f8f8f6;
-  --bg2:          #f1f0ec;
-  --surface:      #e9e8e3;
-  --border:       #dddcd7;
+  --bg:           #f5f4f0;
+  --bg2:          #edecea;
+  --surface:      #e4e3e0;
+  --border:       #d0ceca;
   --text:         #0c0c0c;
-  --text-muted:   #7a7975;
-  --text-dim:     #cecdca;
+  --text-muted:   #6e6b67;
+  --text-dim:     #bfbdb9;
   --accent:       #5b4cff;
   --accent-rgb:   91, 76, 255;
-  --accent-dim:   rgba(91, 76, 255, 0.07);
+  --accent-dim:   rgba(91, 76, 255, 0.09);
 }
 
 /* --- RESET --- */
@@ -152,16 +152,45 @@ body::after {
   transition: border-color 0.3s, background 0.5s;
 }
 
-body.claro #navbar { background: rgba(248,248,246,0.82); }
+body.claro #navbar { background: rgba(250, 249, 247, 0.88); }
 
-/* Grain más sutil en modo claro */
-body.claro::after { opacity: 0.18; }
+/* Grain más visible en modo claro para dar textura */
+body.claro::after { opacity: 0.45; }
+
+/* Secciones opacas — bloquean el canvas de partículas en el centro */
+body.claro section:not(#hero) {
+  background: var(--bg);
+  box-shadow: 0 1px 0 var(--border), 0 4px 32px rgba(0,0,0,0.04);
+  border-radius: 2px;
+  border-bottom-color: transparent;
+}
+
+/* Ticker opaco en claro */
+body.claro .ticker { background: var(--bg); }
 
 /* Skill dots en claro: usar border como base visible */
 body.claro .skill-item::before { background: var(--border); }
 
+/* Floaters más presentes en claro */
+body.claro .floater-circle {
+  border-color: rgba(91, 76, 255, 0.18);
+}
+body.claro .floater-circle::after {
+  border-color: rgba(91, 76, 255, 0.10);
+}
+body.claro .floater-cross::before,
+body.claro .floater-cross::after {
+  background: rgba(91, 76, 255, 0.35);
+}
+
 /* Footer text legible en claro */
 body.claro .footer-copy { color: var(--text-muted); }
+body.claro footer { background: var(--bg); position: relative; z-index: 2; }
+
+/* Hero SA background más visible en claro */
+body.claro #hero::before {
+  -webkit-text-stroke-color: rgba(0,0,0,0.07);
+}
 
 #navbar.scrolled { border-bottom-color: var(--border); }
 
