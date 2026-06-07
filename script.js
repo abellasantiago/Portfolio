@@ -3,6 +3,9 @@
    Sistema de parallax + elementos flotantes + scroll cinema
    ============================================================ */
 
+history.scrollRestoration = 'manual';
+window.scrollTo(0, 0);
+
 // ─── INTRO TRANSITION ────────────────────────────────────────
 (function initIntro() {
   const overlay = document.getElementById('intro-overlay');
@@ -79,10 +82,13 @@ function lenisRaf(time) { lenis.raf(time); }
 document.querySelectorAll('a[href^="#"]').forEach(link => {
   link.addEventListener('click', e => {
     const id = link.getAttribute('href').slice(1);
-    if (!id) return;
+    e.preventDefault();
+    if (!id) {
+      lenis.scrollTo(0, { duration: 1.2 });
+      return;
+    }
     const target = document.getElementById(id);
     if (!target) return;
-    e.preventDefault();
     const navH = document.getElementById('navbar')?.offsetHeight || 0;
     lenis.scrollTo(target, { offset: -navH, duration: 1.6 });
   });
