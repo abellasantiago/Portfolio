@@ -884,6 +884,12 @@ footer {
   transform: translate(2px, -2px);
 }
 
+.project-link--disabled {
+  opacity: 0.25;
+  cursor: default;
+  pointer-events: none;
+}
+
 .project-title {
   font-family: var(--font-display);
   font-size: 20px;
