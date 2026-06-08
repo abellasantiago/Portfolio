@@ -177,18 +177,8 @@ body:not(.cursor-hidden) textarea { cursor: text; }
 #cursor-ring { display: none; }
 #cursor-ring2 { display: none; }
 
-/* ── Aura difusa grande ── */
-#cursor-glow {
-  position: fixed;
-  top: 0; left: 0;
-  width: 160px; height: 160px;
-  margin-left: -80px; margin-top: -80px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.04) 0%, transparent 65%);
-  pointer-events: none;
-  z-index: 1;
-  will-change: transform;
-}
+/* ── Aura difusa ── */
+#cursor-glow { display: none; }
 
 /* ─── FLOATING BACKGROUND ELEMENTS ───────────────────────── */
 #floaters {
@@ -260,9 +250,9 @@ body.claro #navbar { background: rgba(250, 249, 247, 0.88); }
 /* Grain más visible en modo claro para dar textura */
 body.claro::after { opacity: 0.45; }
 
-/* Secciones opacas — bloquean el canvas de partículas en el centro */
+/* Secciones semitransparentes — dejan pasar el glow del cursor */
 body.claro section:not(#hero) {
-  background: #ffffff;
+  background: rgba(245, 244, 240, 0.82);
   box-shadow: 0 1px 0 var(--border), 0 4px 32px rgba(0,0,0,0.04);
   border-radius: 2px;
   border-bottom-color: transparent;
@@ -278,10 +268,10 @@ body.claro .project-grid { background: var(--border); }
 
 body.claro .skill-item,
 body.claro .contact-item,
-body.claro .project-card { background: #ffffff; }
+body.claro .project-card { background: rgba(255, 255, 255, 0.75); }
 
-body.claro .project-card:hover { background: #f8f8ff; }
-body.claro .project-card--placeholder:hover { background: #ffffff; }
+body.claro .project-card:hover { background: rgba(248, 248, 255, 0.85); }
+body.claro .project-card--placeholder:hover { background: rgba(255, 255, 255, 0.75); }
 
 /* Skill dots en claro: usar border como base visible */
 body.claro .skill-item::before { background: rgba(var(--accent-rgb), 0.6); }

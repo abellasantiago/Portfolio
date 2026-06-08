@@ -369,10 +369,12 @@ function animateCursor() {}   // stub — el tick del cursor custom maneja el gl
 (function initCustomCursor() {
   if (isMobile) return;
 
-  // Glow DOM — sigue el mouse muy suave
+  // Glow DOM — en modo oscuro suave, en modo claro rápido (actúa como cursor)
   function tickGlow() {
-    glowX = lerp(glowX, mouseX, 0.055);
-    glowY = lerp(glowY, mouseY, 0.055);
+    const speed = document.body.classList.contains('claro') ? 0.22 : 0.055;
+    glowX = lerp(glowX, mouseX, speed);
+    glowY = lerp(glowY, mouseY, speed);
+    // El offset de -30px centra el glow (60px / 2) sobre el cursor
     glow.style.transform = `translate(${glowX}px, ${glowY}px)`;
     requestAnimationFrame(tickGlow);
   }
