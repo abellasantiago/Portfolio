@@ -264,7 +264,7 @@ body.claro .ticker { background: var(--bg); }
 /* Cards y grids en modo claro */
 body.claro .skills-grid,
 body.claro .contact-grid,
-body.claro .project-grid { background: var(--border); }
+body.claro .project-grid { background: rgba(208, 206, 202, 0.40); }
 
 body.claro .skill-item,
 body.claro .contact-item,
