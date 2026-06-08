@@ -944,7 +944,7 @@ document.querySelectorAll('.contact-item').forEach(el => {
   const LIFT        = 6;
   const SHINE_ALPHA = 0.07;
 
-  document.querySelectorAll('.project-card:not(.project-card--placeholder)').forEach(card => {
+  document.querySelectorAll('.project-card:not(.project-card--placeholder):not(.no-shine)').forEach(card => {
     const shine = document.createElement('div');
     shine.style.cssText = `
       position:absolute; inset:0; border-radius:inherit;
