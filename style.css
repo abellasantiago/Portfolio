@@ -166,59 +166,25 @@ body::after {
   box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.6);
 }
 
-/* ─── CURSOR GLOW ─────────────────────────────────────────── */
-/* Ocultar cursor nativo en desktop */
+/* ─── CURSOR SYSTEM ───────────────────────────────────────── */
 body:not(.cursor-hidden) { cursor: none; }
-body:not(.cursor-hidden) a,
-body:not(.cursor-hidden) button,
-body:not(.cursor-hidden) [role="button"] { cursor: none; }
-
-/* Restaurar cursor en inputs de texto */
+body:not(.cursor-hidden) *:not(input):not(textarea) { cursor: none; }
 body:not(.cursor-hidden) input,
 body:not(.cursor-hidden) textarea { cursor: text; }
 
-/* ── Punto central — sigue el mouse sin lag ── */
-#cursor-dot {
-  position: fixed;
-  top: 0; left: 0;
-  width: 6px; height: 6px;
-  margin-left: -3px; margin-top: -3px;
-  border-radius: 50%;
-  background: rgba(var(--accent-rgb), 0.15);
-  pointer-events: none;
-  z-index: 10000;
-  will-change: transform;
-  transition: width 0.2s var(--ease-back),
-              height 0.2s var(--ease-back),
-              margin 0.2s var(--ease-back),
-              opacity 0.2s,
-              background 0.2s;
-}
-
-/* ── Anillo exterior — desactivado ── */
+/* El cursor visual vive en el canvas neural — sin elementos DOM extra */
+#cursor-dot  { display: none; }
 #cursor-ring { display: none; }
-#cursor-ring::after { display: none; }
+#cursor-ring2 { display: none; }
 
-/* ── Estados ── */
-body.cursor-hover #cursor-dot {
-  width: 10px; height: 10px;
-  margin-left: -5px; margin-top: -5px;
-}
-body.cursor-card #cursor-dot { opacity: 0; }
-body.cursor-click #cursor-dot {
-  width: 3px; height: 3px;
-  margin-left: -1.5px; margin-top: -1.5px;
-}
-body.cursor-text #cursor-dot { opacity: 0; }
-
-/* ── Aura difusa ── */
+/* ── Aura difusa grande ── */
 #cursor-glow {
   position: fixed;
   top: 0; left: 0;
-  width: 140px; height: 140px;
-  margin-left: -70px; margin-top: -70px;
+  width: 160px; height: 160px;
+  margin-left: -80px; margin-top: -80px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.06) 0%, transparent 65%);
+  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.04) 0%, transparent 65%);
   pointer-events: none;
   z-index: 1;
   will-change: transform;

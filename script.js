@@ -364,92 +364,42 @@ document.addEventListener('mousemove', e => {
 function animateCursor() {}   // stub — el tick del cursor custom maneja el glow
 
 // ─── CURSOR PERSONALIZADO ─────────────────────────────────────
+// El cursor visual lo dibuja el canvas neural (un único punto de verdad).
+// Aquí solo manejamos: glow DOM y estados de body.
 (function initCustomCursor() {
   if (isMobile) return;
 
-  // Crear elementos
-  const dot  = document.createElement('div');
-  const ring = document.createElement('div');
-  dot.id  = 'cursor-dot';
-  ring.id = 'cursor-ring';
-  ring.setAttribute('data-label', 'Ver');
-  document.body.appendChild(dot);
-  document.body.appendChild(ring);
-
-  // Posiciones: dot sigue sin lag, ring con lerp
-  let mx = -200, my = -200;   // mouse real
-  let rx = -200, ry = -200;   // ring interpolado
-
-  // Actualizar posición del mouse al instante (dot)
-  document.addEventListener('mousemove', e => {
-    mx = e.clientX;
-    my = e.clientY;
-    dot.style.transform = `translate(${mx}px, ${my}px)`;
-  });
-
-  // Ring: interpolación suave en cada frame
-  function tickRing() {
-    rx = lerp(rx, mx, 0.12);
-    ry = lerp(ry, my, 0.12);
-    ring.style.transform = `translate(${rx}px, ${ry}px)`;
-
-    // Mantener el cursor-glow sincronizado también
-    glowX = lerp(glowX, mx, 0.28);
-    glowY = lerp(glowY, my, 0.28);
+  // Glow DOM — sigue el mouse muy suave
+  function tickGlow() {
+    glowX = lerp(glowX, mouseX, 0.055);
+    glowY = lerp(glowY, mouseY, 0.055);
     glow.style.transform = `translate(${glowX}px, ${glowY}px)`;
-
-    requestAnimationFrame(tickRing);
+    requestAnimationFrame(tickGlow);
   }
-  tickRing();
+  tickGlow();
 
-  // ── Gestión de estados del body ──────────────────────────────
+  // ── Gestión de estados ────────────────────────────────────────
   const STATES = ['cursor-hover', 'cursor-card', 'cursor-click', 'cursor-text'];
   function setState(state) {
     STATES.forEach(s => document.body.classList.remove(s));
     if (state) document.body.classList.add(state);
   }
 
-  // Click — aplasta por 120ms
-  document.addEventListener('mousedown', () => {
-    document.body.classList.add('cursor-click');
-  });
-  document.addEventListener('mouseup', () => {
-    document.body.classList.remove('cursor-click');
-  });
+  document.addEventListener('mousedown', () => document.body.classList.add('cursor-click'));
+  document.addEventListener('mouseup',   () => document.body.classList.remove('cursor-click'));
 
-  // Hover sobre elementos interactivos
   function onEnter(e) {
     const t = e.currentTarget;
-    if (t.matches('.project-card:not(.project-card--placeholder)')) {
-      setState('cursor-card');
-    } else if (t.matches('input, textarea')) {
-      setState('cursor-text');
-    } else {
-      setState('cursor-hover');
-    }
+    if      (t.matches('.project-card:not(.project-card--placeholder)')) setState('cursor-card');
+    else if (t.matches('input, textarea'))                                setState('cursor-text');
+    else                                                                  setState('cursor-hover');
   }
-  function onLeave() {
-    setState(null);
-  }
+  function onLeave() { setState(null); }
 
-  // Selectores que activan hover
   const hoverTargets = 'a, button, .btn-primary, .btn-ghost, .btn-cv, .skill-item, .contact-item, .nav-logo';
-  const cardTargets  = '.project-card:not(.project-card--placeholder)';
-  const textTargets  = 'input, textarea';
-
-  document.querySelectorAll(`${hoverTargets}, ${cardTargets}, ${textTargets}`).forEach(el => {
+  document.querySelectorAll(`${hoverTargets}, .project-card:not(.project-card--placeholder), input, textarea`).forEach(el => {
     el.addEventListener('mouseenter', onEnter);
     el.addEventListener('mouseleave', onLeave);
-  });
-
-  // Ocultar cuando el mouse sale de la ventana
-  document.addEventListener('mouseleave', () => {
-    dot.style.opacity  = '0';
-    ring.style.opacity = '0';
-  });
-  document.addEventListener('mouseenter', () => {
-    dot.style.opacity  = '';
-    ring.style.opacity = '';
   });
 })();
 
@@ -713,196 +663,220 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
 (function initNeuralNet() {
   if (isMobile) return;
 
-  // Canvas setup — sits behind everything, fixed to viewport
   const canvas = document.createElement('canvas');
   canvas.id = 'neural-canvas';
   canvas.style.cssText = `
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 1;
+    position: fixed; inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; z-index: 0; opacity: 1;
   `;
   document.body.insertBefore(canvas, document.body.firstChild);
-
   const ctx = canvas.getContext('2d');
 
-  // Config
   const CFG = {
-    count:         42,       // number of particles
-    maxDist:       150,      // connection draw distance (px)
-    mouseRadius:   280,      // mouse attraction radius
-    mouseForce:    0.045,    // how strongly mouse pulls particles
-    speed:         0.28,     // base drift speed
-    nodeSizeMin:   0.9,
-    nodeSizeMax:   2.0,
-    lineMaxAlpha:  0.10,     // max opacity of connecting lines
-    mouseLineAlpha:0.26,     // line opacity when near mouse
-    pulseSpeed:    0.014,
+    count:          68,
+    maxDist:        160,
+    mouseRadius:    220,
+    mouseForce:     0.038,
+    repelForce:     0.055,
+    repelRadius:    55,
+    speed:          0.22,
+    nodeSizeMin:    0.7,
+    nodeSizeMax:    2.2,
+    lineMaxAlpha:   0.12,
+    mouseLineAlpha: 0.32,
+    pulseSpeed:     0.012,
   };
 
-  let W = window.innerWidth;
-  let H = window.innerHeight;
-  canvas.width  = W;
-  canvas.height = H;
-
+  let W = window.innerWidth, H = window.innerHeight;
+  canvas.width = W; canvas.height = H;
   window.addEventListener('resize', () => {
-    W = window.innerWidth;
-    H = window.innerHeight;
-    canvas.width  = W;
-    canvas.height = H;
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W; canvas.height = H;
   });
 
-  // Read accent color from CSS variable
   function getAccentRGB() {
-    const raw = getComputedStyle(document.body)
-      .getPropertyValue('--accent-rgb').trim();
+    const raw = getComputedStyle(document.body).getPropertyValue('--accent-rgb').trim();
     if (raw) {
       const parts = raw.split(',').map(s => parseInt(s.trim(), 10));
       if (parts.length === 3) return parts;
     }
-    return [200, 241, 53]; // fallback lime
+    return [200, 241, 53];
   }
 
-  // Particle class
+  // ── Partícula ──────────────────────────────────────────────────
   class Particle {
-    constructor() { this.reset(true); }
-
-    reset(randomY = false) {
+    constructor(randomPos = false) {
       this.x  = Math.random() * W;
-      this.y  = randomY ? Math.random() * H : (Math.random() > 0.5 ? -10 : H + 10);
+      this.y  = randomPos ? Math.random() * H : (Math.random() > 0.5 ? -10 : H + 10);
       this.vx = (Math.random() - 0.5) * CFG.speed;
       this.vy = (Math.random() - 0.5) * CFG.speed;
       this.r  = CFG.nodeSizeMin + Math.random() * (CFG.nodeSizeMax - CFG.nodeSizeMin);
-      this.phase = Math.random() * Math.PI * 2;  // for pulse
-      this.baseAlpha = 0.12 + Math.random() * 0.24;
+      this.phase    = Math.random() * Math.PI * 2;
+      this.baseAlpha = 0.15 + Math.random() * 0.3;
+      // Cada partícula tiene una "energía" que sube cerca del mouse
+      this.energy = 0;
     }
 
     update(mx, my) {
-      // Mouse attraction
-      const dx = mx - this.x;
-      const dy = my - this.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < CFG.mouseRadius && dist > 1) {
-        const force = (CFG.mouseRadius - dist) / CFG.mouseRadius * CFG.mouseForce;
+      const dx   = mx - this.x;
+      const dy   = my - this.y;
+      const dist = Math.hypot(dx, dy);
+
+      // Atracción suave desde lejos
+      if (dist < CFG.mouseRadius && dist > CFG.repelRadius) {
+        const force = ((CFG.mouseRadius - dist) / CFG.mouseRadius) * CFG.mouseForce;
         this.vx += (dx / dist) * force;
         this.vy += (dy / dist) * force;
+        this.energy = lerp(this.energy, (1 - dist / CFG.mouseRadius), 0.08);
+      }
+      // Repulsión cuando está muy cerca — efecto campo de fuerza
+      else if (dist < CFG.repelRadius && dist > 1) {
+        const force = ((CFG.repelRadius - dist) / CFG.repelRadius) * CFG.repelForce;
+        this.vx -= (dx / dist) * force;
+        this.vy -= (dy / dist) * force;
+        this.energy = lerp(this.energy, 0.8, 0.12);
+      } else {
+        this.energy = lerp(this.energy, 0, 0.04);
       }
 
-      // Dampen velocity so they don't fly away
-      this.vx *= 0.96;
-      this.vy *= 0.96;
-
-      // Clamp speed
-      const spd = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-      if (spd > CFG.speed * 6) {
-        this.vx = (this.vx / spd) * CFG.speed * 6;
-        this.vy = (this.vy / spd) * CFG.speed * 6;
-      }
+      // Dampen + clamp
+      this.vx *= 0.97;
+      this.vy *= 0.97;
+      const spd = Math.hypot(this.vx, this.vy);
+      const maxSpd = CFG.speed * 5;
+      if (spd > maxSpd) { this.vx = (this.vx / spd) * maxSpd; this.vy = (this.vy / spd) * maxSpd; }
 
       this.x += this.vx;
       this.y += this.vy;
       this.phase += CFG.pulseSpeed;
 
-      // Wrap around edges
+      // Wrap
       if (this.x < -20) this.x = W + 20;
-      if (this.x > W + 20) this.x = -20;
+      if (this.x > W+20) this.x = -20;
       if (this.y < -20) this.y = H + 20;
-      if (this.y > H + 20) this.y = -20;
+      if (this.y > H+20) this.y = -20;
     }
 
-    draw(rgb, boost = 1) {
-      const pulse = 0.7 + 0.3 * Math.sin(this.phase);
-      const alpha = Math.min(this.baseAlpha * pulse * boost, 0.95);
+    draw(rgb, boost) {
+      const pulse = 0.75 + 0.25 * Math.sin(this.phase);
+      const energyBoost = 1 + this.energy * 2.5;
+      const alpha = Math.min(this.baseAlpha * pulse * boost * energyBoost, 0.95);
+      const radius = this.r * pulse * (1 + this.energy * 0.8);
+
+      // Halo brillante cuando tiene energía
+      if (this.energy > 0.15) {
+        const haloAlpha = this.energy * 0.18 * boost;
+        const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, radius * 5);
+        grad.addColorStop(0, `rgba(${rgb},${haloAlpha})`);
+        grad.addColorStop(1, `rgba(${rgb},0)`);
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, radius * 5, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+      }
+
       ctx.beginPath();
-      ctx.arc(this.x, this.y, this.r * pulse, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
+      ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${rgb},${alpha})`;
       ctx.fill();
     }
   }
 
-  // Init particles
-  const particles = Array.from({ length: CFG.count }, () => new Particle());
-
-  // Mouse position (screen coords, same as canvas which is fixed)
+  const particles = Array.from({ length: CFG.count }, () => new Particle(true));
   let nmx = -999, nmy = -999;
+
   document.addEventListener('mousemove', e => { nmx = e.clientX; nmy = e.clientY; });
 
   function drawNeural() {
-    const rgb = getAccentRGB();
-    const isLight    = document.body.classList.contains('claro');
-    const boost      = isLight ? 5.5 : 1;
-    const lineBoost  = isLight ? 7.0 : 1;
+    const rgb     = getAccentRGB().join(',');
+    const isLight = document.body.classList.contains('claro');
+    const boost   = isLight ? 5.0 : 1;
+    const lBoost  = isLight ? 6.5 : 1;
+
     ctx.clearRect(0, 0, W, H);
 
-    // Update + collect positions
+    // Update partículas
     particles.forEach(p => p.update(nmx, nmy));
 
-    // Draw connections
+    // Dibujar conexiones con grosor variable por distancia
     for (let i = 0; i < particles.length; i++) {
       const a = particles[i];
       for (let j = i + 1; j < particles.length; j++) {
         const b = particles[j];
-        const dx = a.x - b.x;
-        const dy = a.y - b.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const dist = Math.hypot(dx, dy);
         if (dist > CFG.maxDist) continue;
 
-        // Fade line by distance
-        let alpha = (1 - dist / CFG.maxDist) * CFG.lineMaxAlpha * lineBoost;
+        const t = 1 - dist / CFG.maxDist;
+        let alpha = t * t * CFG.lineMaxAlpha * lBoost;
 
-        // Boost lines near mouse
-        const midX = (a.x + b.x) / 2;
-        const midY = (a.y + b.y) / 2;
-        const mdx = midX - nmx, mdy = midY - nmy;
-        const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+        // Boost por energía de los nodos
+        const energyMult = 1 + (a.energy + b.energy) * 1.8;
+        alpha *= energyMult;
+
+        // Boost cerca del mouse
+        const midX = (a.x + b.x) / 2, midY = (a.y + b.y) / 2;
+        const mdist = Math.hypot(midX - nmx, midY - nmy);
         if (mdist < CFG.mouseRadius) {
-          const mouseB = (1 - mdist / CFG.mouseRadius);
-          alpha = Math.min(alpha + mouseB * CFG.mouseLineAlpha * lineBoost, CFG.mouseLineAlpha * lineBoost);
+          alpha = Math.min(alpha + (1 - mdist / CFG.mouseRadius) * CFG.mouseLineAlpha * lBoost,
+                          CFG.mouseLineAlpha * lBoost * 1.5);
         }
+
+        // Grosor variable: más grueso si hay energía o si está cerca del mouse
+        const width = 0.5 + t * 0.7 * energyMult;
 
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
         ctx.lineTo(b.x, b.y);
-        ctx.strokeStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
-        ctx.lineWidth = 0.7;
+        ctx.strokeStyle = `rgba(${rgb},${Math.min(alpha, 0.65)})`;
+        ctx.lineWidth = width;
         ctx.stroke();
       }
 
-      // Draw lines from mouse to nearby particles
+      // Líneas desde mouse a partículas cercanas — más largas y definidas
       const mdx = a.x - nmx, mdy = a.y - nmy;
-      const mouseDist = Math.sqrt(mdx * mdx + mdy * mdy);
-      if (mouseDist < CFG.mouseRadius * 0.7) {
-        const alpha = (1 - mouseDist / (CFG.mouseRadius * 0.7)) * CFG.mouseLineAlpha * 1.2;
+      const mouseDist = Math.hypot(mdx, mdy);
+      if (mouseDist < CFG.mouseRadius * 0.85) {
+        const t = 1 - mouseDist / (CFG.mouseRadius * 0.85);
+        const alpha = t * CFG.mouseLineAlpha * 1.4 * lBoost;
         ctx.beginPath();
         ctx.moveTo(nmx, nmy);
         ctx.lineTo(a.x, a.y);
-        ctx.strokeStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
-        ctx.lineWidth = 0.9;
+        ctx.strokeStyle = `rgba(${rgb},${alpha})`;
+        ctx.lineWidth = 0.7 + t * 0.8;
         ctx.stroke();
       }
     }
 
-    // Draw particles on top
+    // Dibujar nodos encima
     particles.forEach(p => p.draw(rgb, boost));
 
-    // Draw a small glowing dot at mouse position (only when in window)
+    // Dot en el mouse — único cursor
     if (nmx > 0) {
-      const dotAlpha = isLight ? 0.85 : 0.6;
-      const dotRadius = isLight ? 10 : 8;
-      const grad = ctx.createRadialGradient(nmx, nmy, 0, nmx, nmy, dotRadius);
-      grad.addColorStop(0, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${dotAlpha})`);
-      grad.addColorStop(1, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0)`);
-      ctx.beginPath();
-      ctx.arc(nmx, nmy, dotRadius, 0, Math.PI * 2);
-      ctx.fillStyle = grad;
+      const isHover = document.body.classList.contains('cursor-hover') ||
+                      document.body.classList.contains('cursor-card');
+      const isClick = document.body.classList.contains('cursor-click');
+
+      const dotA   = isLight ? 0.95 : 0.88;
+      const coreR  = isClick ? 2 : isHover ? 4 : 3;
+      const haloR  = isClick ? 10 : isHover ? 22 : 14;
+      const haloA  = isClick ? 0.35 : 0.22;
+
+      // Halo difuso
+      const halo = ctx.createRadialGradient(nmx, nmy, 0, nmx, nmy, haloR);
+      halo.addColorStop(0,   `rgba(${rgb},${haloA})`);
+      halo.addColorStop(1,   `rgba(${rgb},0)`);
+      ctx.beginPath(); ctx.arc(nmx, nmy, haloR, 0, Math.PI * 2);
+      ctx.fillStyle = halo; ctx.fill();
+
+      // Núcleo
+      ctx.beginPath(); ctx.arc(nmx, nmy, coreR, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${rgb},${dotA})`;
       ctx.fill();
     }
   }
 
-  // Expose so the main loop can call it
   window._drawNeural = drawNeural;
 })();
 
