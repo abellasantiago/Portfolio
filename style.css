@@ -180,6 +180,33 @@ body:not(.cursor-hidden) textarea { cursor: text; }
 /* ── Aura difusa ── */
 #cursor-glow { display: none; }
 
+/* ── Cursor overlay — flota por encima de todo (navbar, cards, etc.) ── */
+#cursor-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  filter: blur(2.5px);
+  background: radial-gradient(
+    circle,
+    rgba(var(--accent-rgb), 0.82) 0%,
+    rgba(var(--accent-rgb), 0.35) 40%,
+    rgba(var(--accent-rgb), 0) 100%
+  );
+  transition: width 0.12s, height 0.12s, opacity 0.15s;
+  opacity: 0;
+}
+body.claro #cursor-overlay,
+body.cursor-over-nav #cursor-overlay        { opacity: 1; }
+body.claro.cursor-hover #cursor-overlay,
+body.claro.cursor-card  #cursor-overlay,
+body.cursor-over-nav.cursor-hover #cursor-overlay { width: 30px; height: 30px; }
+body.claro.cursor-click #cursor-overlay,
+body.cursor-over-nav.cursor-click #cursor-overlay { width: 14px; height: 14px; opacity: 0.6; }
+
 /* ─── FLOATING BACKGROUND ELEMENTS ───────────────────────── */
 #floaters {
   position: fixed;

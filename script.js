@@ -353,12 +353,22 @@ const glow = document.createElement('div');
 glow.id = 'cursor-glow';
 document.body.appendChild(glow);
 
+// ── Cursor overlay — visible sobre navbar y cards en modo claro ──
+const cursorOverlay = document.createElement('div');
+cursorOverlay.id = 'cursor-overlay';
+document.body.appendChild(cursorOverlay);
+
 let mouseX = -200, mouseY = -200;
 let glowX  = -200, glowY  = -200;
 
+const navbar = document.getElementById('navbar');
 document.addEventListener('mousemove', e => {
   mouseX = e.clientX;
   mouseY = e.clientY;
+  cursorOverlay.style.left = e.clientX + 'px';
+  cursorOverlay.style.top  = e.clientY + 'px';
+  const overNav = navbar && e.clientY <= navbar.offsetHeight;
+  document.body.classList.toggle('cursor-over-nav', overNav);
 });
 
 function animateCursor() {}   // stub — el tick del cursor custom maneja el glow
