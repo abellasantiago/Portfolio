@@ -983,6 +983,19 @@ footer {
 #navbar.nav-open #nav-toggle span:nth-child(2) { opacity: 0; transform: scaleX(0); }
 #navbar.nav-open #nav-toggle span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
+/* ─── HERO 3D CANVAS ──────────────────────────────────────── */
+#hero-3d {
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 480px;
+  height: 480px;
+  pointer-events: none;
+  opacity: 0.85;
+  z-index: 1;
+}
+
 /* ─── RESPONSIVE ──────────────────────────────────────────── */
 @media (max-width: 700px) {
   /* Restaurar cursor en touch */
@@ -1059,4 +1072,7 @@ footer {
 
   /* Skills grid — min 2 columnas cómodas */
   .skills-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+
+  /* Hero 3D — oculto en mobile */
+  #hero-3d { display: none; }
 }
