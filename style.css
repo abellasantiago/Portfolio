@@ -670,21 +670,27 @@ h2 {
   cursor: default;
   display: flex; align-items: center; gap: 10px;
   will-change: transform, opacity;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  transition: background 0.25s, color 0.2s, box-shadow 0.55s var(--ease);
   box-shadow: inset 0 0 0 1px rgba(42,42,42,0.5);
 }
 .skill-item::before {
   content: ''; width: 6px; height: 6px; border-radius: 50%;
   background: rgba(var(--accent-rgb), 0.5); flex-shrink: 0;
-  transition: background 0.25s, transform 0.25s var(--ease-back), box-shadow 0.25s;
+  transition: background 0.25s, transform 0.25s var(--ease-back), box-shadow 0.5s var(--ease);
+}
+.visible .skill-item {
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.2);
+}
+.visible .skill-item::before {
+  box-shadow: 0 0 5px rgba(var(--accent-rgb), 0.45);
 }
 .skill-item:hover {
   background: rgba(var(--accent-rgb), 0.12); color: var(--text);
-  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.35);
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.45);
 }
 .skill-item:hover::before {
   background: var(--accent); transform: scale(1.5);
-  box-shadow: 0 0 6px rgba(var(--accent-rgb), 0.7);
+  box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.8);
 }
 
 /* ─── CONTACTO ────────────────────────────────────────────── */
@@ -704,6 +710,7 @@ h2 {
   position: relative; overflow: hidden;
   will-change: transform, opacity;
   box-shadow: inset 0 0 0 1px rgba(42,42,42,0.5);
+  transition: transform 0.3s var(--ease), box-shadow 0.6s var(--ease);
 }
 .contact-item::after {
   content: '';
@@ -711,8 +718,18 @@ h2 {
   background: var(--accent-dim);
   opacity: 0; transition: opacity 0.25s;
 }
+.visible .contact-item {
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--accent-rgb), 0.25),
+    0 4px 28px -6px rgba(var(--accent-rgb), 0.07);
+}
 .contact-item:hover { transform: translateY(-3px); }
 .contact-item:hover::after { opacity: 1; }
+.visible .contact-item:hover {
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--accent-rgb), 0.5),
+    0 8px 32px -4px rgba(var(--accent-rgb), 0.14);
+}
 
 .contact-label {
   font-family: var(--font-mono); font-size: 10px;
@@ -811,22 +828,25 @@ footer {
   gap: 16px;
   position: relative;
   overflow: hidden;
-  transition: background 0.3s;
+  transition: background 0.3s, box-shadow 0.6s var(--ease);
   will-change: transform, opacity;
   transform-style: preserve-3d;
   isolation: isolate;
 }
 
-.project-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 0; height: 2px;
-  background: var(--accent);
-  transition: width 0.5s var(--ease);
-}
-.project-card:hover::before { width: 100%; }
+.project-card::before { display: none; }
 .project-card:hover { background: rgba(var(--bg-rgb, 3,3,3), 0.75); }
+
+.visible .project-card {
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--accent-rgb), 0.25),
+    0 4px 28px -6px rgba(var(--accent-rgb), 0.07);
+}
+.visible .project-card:hover {
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--accent-rgb), 0.5),
+    0 8px 32px -4px rgba(var(--accent-rgb), 0.14);
+}
 
 .project-card--placeholder {
   opacity: 0.45;
@@ -834,6 +854,9 @@ footer {
 }
 .project-card--placeholder:hover { background: rgba(var(--bg-rgb, 3,3,3), 0.58); }
 .project-card--placeholder::before { display: none; }
+.visible .project-card--placeholder {
+  box-shadow: inset 0 0 0 1px rgba(42,42,42,0.5);
+}
 
 .project-card-top {
   display: flex;
