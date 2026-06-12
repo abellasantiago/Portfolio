@@ -7,14 +7,14 @@
 
 /* --- VARIABLES --- */
 :root {
-  --bg:           #0a0a0a;
-  --bg2:          #111111;
-  --surface:      #1a1a1a;
-  --border:       #222222;
+  --bg:           #030303;
+  --bg2:          #080808;
+  --surface:      #111111;
+  --border:       #1a1a1a;
   --text:         #e8e8e8;
   --text-muted:   #8a8a8a;
   --text-dim:     #2a2a2a;
-  --bg-rgb:       10, 10, 10;
+  --bg-rgb:       3, 3, 3;
   --accent:       #c8f135;
   --accent-rgb:   200, 241, 53;
   --accent-dim:   rgba(200, 241, 53, 0.07);
@@ -264,7 +264,7 @@ body.cursor-over-nav.cursor-click #cursor-overlay { width: 14px; height: 14px; o
   align-items: center;
   justify-content: space-between;
   padding: 0 40px;
-  background: rgba(10,10,10,0.6);
+  background: rgba(3,3,3,0.7);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   border-bottom: 1px solid transparent;
@@ -660,7 +660,7 @@ h2 {
 }
 
 .skill-item {
-  background: rgba(var(--bg-rgb, 10,10,10), 0.35);
+  background: rgba(var(--bg-rgb, 3,3,3), 0.58);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   padding: 20px 18px;
@@ -695,7 +695,7 @@ h2 {
 }
 
 .contact-item {
-  background: rgba(var(--bg-rgb, 10,10,10), 0.35);
+  background: rgba(var(--bg-rgb, 3,3,3), 0.58);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   padding: 28px 24px;
@@ -801,7 +801,7 @@ footer {
 }
 
 .project-card {
-  background: rgba(var(--bg-rgb, 10,10,10), 0.35);
+  background: rgba(var(--bg-rgb, 3,3,3), 0.58);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   padding: 28px 24px;
@@ -826,13 +826,13 @@ footer {
   transition: width 0.5s var(--ease);
 }
 .project-card:hover::before { width: 100%; }
-.project-card:hover { background: rgba(var(--bg-rgb, 10,10,10), 0.55); }
+.project-card:hover { background: rgba(var(--bg-rgb, 3,3,3), 0.75); }
 
 .project-card--placeholder {
   opacity: 0.45;
   cursor: default;
 }
-.project-card--placeholder:hover { background: rgba(var(--bg-rgb, 10,10,10), 0.35); }
+.project-card--placeholder:hover { background: rgba(var(--bg-rgb, 3,3,3), 0.58); }
 .project-card--placeholder::before { display: none; }
 
 .project-card-top {
