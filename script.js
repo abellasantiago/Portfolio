@@ -752,6 +752,10 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
         this.energy = lerp(this.energy, 0, 0.04);
       }
 
+      // Vida propia — deriva sinusoidal única por partícula
+      this.vx += Math.sin(this.phase * 0.6 + this.y * 0.004) * 0.003;
+      this.vy += Math.cos(this.phase * 0.4 + this.x * 0.004) * 0.003;
+
       // Dampen + clamp
       this.vx *= 0.97;
       this.vy *= 0.97;
@@ -1147,18 +1151,108 @@ document.querySelectorAll('.contact-item').forEach(el => {
   window.addEventListener('resize', () => setTimeout(resize3d, 100));
   resize3d();
 
+  // ── Morphing Icosahedron ──────────────────────────────────────
+  const icoGeo = new THREE.IcosahedronGeometry(1.3, 4);
+  const icoMat = new THREE.MeshBasicMaterial({
+    color: getAccentHex(), wireframe: true, transparent: true, opacity: 0.28
+  });
+  const ico = new THREE.Mesh(icoGeo, icoMat);
+  scene.add(ico);
+  const origPos = icoGeo.attributes.position.array.slice();
+
+  // Dot cloud at vertices for sparkle
+  const dotsGeo = new THREE.BufferGeometry();
+  dotsGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(origPos), 3));
+  const dotsMat = new THREE.PointsMaterial({
+    color: getAccentHex(), size: 0.045, transparent: true, opacity: 0.45, sizeAttenuation: true
+  });
+  const dots = new THREE.Points(dotsGeo, dotsMat);
+  scene.add(dots);
+
+  // ── Keyword Sprites ───────────────────────────────────────────
+  function makeKeywordTexture(text) {
+    const c = document.createElement('canvas');
+    c.width = 256; c.height = 64;
+    const ctx2 = c.getContext('2d');
+    ctx2.font = '400 15px "DM Mono", monospace';
+    ctx2.fillStyle = '#ffffff';
+    ctx2.textAlign = 'center';
+    ctx2.textBaseline = 'middle';
+    ctx2.fillText(text, 128, 32);
+    return new THREE.CanvasTexture(c);
+  }
+
+  const kwLabels = ['C#', 'Python', '.NET', 'Git', 'SQL', 'HTML/CSS'];
+  const kwSprites = kwLabels.map((label, i) => {
+    const mat = new THREE.SpriteMaterial({
+      map: makeKeywordTexture(label),
+      color: getAccentHex(), transparent: true, opacity: 0.7, depthWrite: false
+    });
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(1.1, 0.28, 1);
+    scene.add(sprite);
+    return {
+      sprite,
+      baseAngle: (i / kwLabels.length) * Math.PI * 2,
+      radius: 2.15,
+      yi: (i % 3 - 1) * 0.72
+    };
+  });
+
+  const _spriteNDC = new THREE.Vector3();
+
   // ── Loop de animación propio ──────────────────────────────────
   let t3d = 0;
   function tick3d() {
     requestAnimationFrame(tick3d);
     t3d += 0.012;
 
-    // agregá objetos 3D acá
+    const accentHex = getAccentHex();
+
+    // Morph icosahedron vertices
+    const pos = icoGeo.attributes.position.array;
+    for (let i = 0; i < pos.length; i += 3) {
+      const ox = origPos[i], oy = origPos[i + 1], oz = origPos[i + 2];
+      const n = Math.sin(ox * 2.5 + t3d * 0.9) * Math.cos(oy * 2 + t3d * 0.7) * Math.sin(oz * 2.5 + t3d * 0.5);
+      const mi = 1 + mx3 * 0.07 * (ox / 1.3) + my3 * 0.05 * (oy / 1.3);
+      const s = (1 + n * 0.28) * mi;
+      pos[i] = ox * s; pos[i + 1] = oy * s; pos[i + 2] = oz * s;
+    }
+    icoGeo.attributes.position.needsUpdate = true;
+    dotsGeo.attributes.position.array.set(pos);
+    dotsGeo.attributes.position.needsUpdate = true;
+
+    ico.rotation.y = t3d * 0.12 + mx3 * 0.4;
+    ico.rotation.x = t3d * 0.08 + my3 * 0.4;
+    dots.rotation.copy(ico.rotation);
+    icoMat.color.setHex(accentHex);
+    dotsMat.color.setHex(accentHex);
+
+    // Orbit keyword sprites
+    kwSprites.forEach(({ sprite, baseAngle, radius, yi }) => {
+      const angle = baseAngle + t3d * 0.22;
+      const sx = Math.cos(angle) * radius;
+      const sz = Math.sin(angle) * radius;
+      sprite.position.set(sx, yi + Math.sin(t3d * 0.4 + baseAngle) * 0.2, sz);
+
+      // Depth fade: sprites behind the blob appear dimmer
+      const depthOpacity = 0.04 + 0.32 * (0.5 + 0.5 * (sz / radius));
+
+      // Edge fade: project to NDC (-1..1) and fade before WebGL clips
+      _spriteNDC.copy(sprite.position).project(camera);
+      const ndcDist = Math.sqrt(_spriteNDC.x * _spriteNDC.x + _spriteNDC.y * _spriteNDC.y);
+      const t = Math.max(0, Math.min(1, (ndcDist - 0.5) / 0.4));
+      const edgeFade = 1 - t * t * (3 - 2 * t); // smoothstep
+
+      sprite.material.opacity = depthOpacity * edgeFade;
+      sprite.material.color.setHex(accentHex);
+    });
 
     renderer.render(scene, camera);
   }
   tick3d();
 })();
+
 
 // ─── MAIN LOOP ────────────────────────────────────────────────
 function loop(time) {
