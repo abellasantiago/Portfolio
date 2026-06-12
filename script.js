@@ -113,7 +113,9 @@ document.querySelectorAll('.oculto').forEach(el => revealObserver.observe(el));
 
 // ─── STAGGER ITEMS INSIDE SECTIONS ───────────────────────────
 document.querySelectorAll('.item, .skill-item, .contact-item, .project-card').forEach((el, i) => {
-  el.style.transitionDelay = `${(i % 6) * 0.07}s`;
+  const delay = `${(i % 6) * 0.07}s`;
+  el.style.transitionDelay = delay;
+  el.style.setProperty('--stagger-delay', delay);
 });
 
 // ─── SOBRE MÍ — REVEAL DESDE ABAJO ──────────────────────────
