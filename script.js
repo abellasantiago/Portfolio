@@ -65,6 +65,7 @@ const lenis = new Lenis({
   smoothWheel: true,
   touchMultiplier: 1.5,
 });
+window.lenis = lenis;
 
 // Lenis alimenta scrollY para que parallax y progress funcionen en sync
 lenis.on('scroll', ({ scroll }) => {
@@ -1116,28 +1117,46 @@ document.querySelectorAll('.contact-item').forEach(el => {
   });
 })();
 
-// ─── HERO 3D OBJECT (Three.js) ────────────────────────────────
+// ─── HERO 3D — ICOSAEDRO DECONSTRUIBLE (Three.js) ─────────────
+// El blob del hero es un icosaedro facetado (180 caras) que late
+// suavemente. Al scrollear fuera del hero se DECONSTRUYE: una onda
+// recorre el sólido, cada cara se desprende con un flash, vuela
+// rotando sobre su propio eje, se encoge y se disuelve en
+// partículas que derivan hacia arriba — eco del SA point cloud de
+// más abajo. Todo es función pura del progress de scroll:
+// scrubbed y 100% reversible.
 (function initHero3D() {
   if (isMobile) return;
 
   const canvas = document.getElementById('hero-3d');
   if (!canvas || typeof THREE === 'undefined') return;
 
+  const reduceMotion3d = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const heroEl = document.getElementById('hero');
+
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setClearColor(0x000000, 0);
 
-  const scene = new THREE.Scene();
+  const scene  = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
   camera.position.set(0, 0, 5);
+
+  // Grupo raíz — su escala/posición replican el layout original
+  // (blob de ~480px anclado a la derecha) sobre el canvas fullscreen.
+  const group = new THREE.Group();
+  scene.add(group);
 
   function getAccentHex() {
     return document.body.classList.contains('claro') ? 0x5b4cff : 0xc8f135;
   }
 
-  // ── Mouse ────────────────────────────────────────────────────
+  const sstep = (a, b, x) => { x = clamp((x - a) / (b - a), 0, 1); return x * x * (3 - 2 * x); };
+  const bell  = (x, c, w) => { const d = Math.abs(x - c) / w; return d >= 1 ? 0 : (1 - d * d) * (1 - d * d); };
+  const rnd3  = s => { const x = Math.sin(s * 127.1 + 311.7) * 43758.5453123; return x - Math.floor(x); };
+
+  // ── Mouse (relativo al hero, igual que siempre) ──────────────
   let mx3 = 0, my3 = 0;
-  const heroEl = document.getElementById('hero');
   heroEl.addEventListener('mousemove', e => {
     const r = heroEl.getBoundingClientRect();
     mx3 = ((e.clientX - r.left) / r.width  - 0.5) * 2;
@@ -1145,33 +1164,217 @@ document.querySelectorAll('.contact-item').forEach(el => {
   });
   heroEl.addEventListener('mouseleave', () => { mx3 = 0; my3 = 0; });
 
-  // ── Resize ───────────────────────────────────────────────────
-  function resize3d() {
-    const s = canvas.clientWidth;
-    renderer.setSize(s, s, false);
+  // ── Geometría: icosaedro facetado, cada cara independiente ───
+  const RADIUS = 1.3;
+  let srcGeo = new THREE.IcosahedronGeometry(RADIUS, 2);
+  if (srcGeo.index) srcGeo = srcGeo.toNonIndexed();
+  const basePos = srcGeo.attributes.position.array.slice();
+  srcGeo.dispose();
+  const FACES = basePos.length / 9;
+  const VERTS = FACES * 3;
+
+  // Datos de deconstrucción por cara: la onda de pelado entra por
+  // arriba-adelante; cada cara recibe dirección de vuelo (afuera +
+  // sesgo hacia arriba), eje y velocidad de giro propios.
+  const sweep = new THREE.Vector3(0.32, 0.9, 0.34).normalize();
+  const faceData = [];
+  {
+    const _c = new THREE.Vector3();
+    for (let f = 0; f < FACES; f++) {
+      const o = f * 9;
+      _c.set(
+        (basePos[o]     + basePos[o + 3] + basePos[o + 6]) / 3,
+        (basePos[o + 1] + basePos[o + 4] + basePos[o + 7]) / 3,
+        (basePos[o + 2] + basePos[o + 5] + basePos[o + 8]) / 3
+      );
+      const along = (_c.clone().normalize().dot(sweep) + 1) / 2; // 1 = parte primero
+      const fly = _c.clone().normalize()
+        .add(new THREE.Vector3(rnd3(f * 7 + 2) - 0.5, rnd3(f * 7 + 3) - 0.5, rnd3(f * 7 + 4) - 0.5).multiplyScalar(0.9))
+        .add(new THREE.Vector3(0, 0.8, 0.25))
+        .normalize();
+      const axis = new THREE.Vector3(rnd3(f * 5 + 5) - 0.5, rnd3(f * 5 + 6) - 0.5, rnd3(f * 5 + 7) - 0.5).normalize();
+      faceData.push({
+        stagger: clamp(0.62 * (1 - along) + 0.38 * rnd3(f * 3 + 1), 0, 1),
+        fx: fly.x, fy: fly.y, fz: fly.z,
+        ax: axis.x, ay: axis.y, az: axis.z,
+        dist: 2.3 + rnd3(f * 3 + 8) * 3.1,
+        spin: (rnd3(f * 3 + 9) - 0.5) * 9,
+        cs0: 0.038 + rnd3(f * 11 + 1) * 0.026,
+        cs1: 0.038 + rnd3(f * 11 + 2) * 0.026,
+        cs2: 0.038 + rnd3(f * 11 + 3) * 0.026,
+      });
+    }
   }
-  window.addEventListener('resize', () => setTimeout(resize3d, 100));
-  resize3d();
 
-  // ── Morphing Icosahedron ──────────────────────────────────────
-  const icoGeo = new THREE.IcosahedronGeometry(1.3, 4);
-  const icoMat = new THREE.MeshBasicMaterial({
-    color: getAccentHex(), wireframe: true, transparent: true, opacity: 0.28
+  // Partículas de disolución: 4 por cara, en coords baricéntricas,
+  // con trayectoria libre propia al soltarse de la cara.
+  const INNER = 4;
+  const P_COUNT = FACES * (3 + INNER);
+  const innerData = [];
+  for (let f = 0; f < FACES; f++) {
+    for (let k = 0; k < INNER; k++) {
+      const s = f * 31 + k * 7;
+      const su = Math.sqrt(rnd3(s + 1));
+      const dir = new THREE.Vector3(rnd3(s + 3) - 0.5, rnd3(s + 4) - 0.5 + 0.55, rnd3(s + 5) - 0.5).normalize();
+      innerData.push({
+        b0: 1 - su, b1: su * (1 - rnd3(s + 2)), b2: su * rnd3(s + 2),
+        dx: dir.x, dy: dir.y, dz: dir.z,
+        dist: 1.3 + rnd3(s + 6) * 2.4,
+        phase: rnd3(s + 8) * Math.PI * 2,
+        size: 0.02 + rnd3(s + 9) * 0.03,
+      });
+    }
+  }
+
+  // ── Buffers dinámicos + shaders con alpha por vértice ─────────
+  const morphPos = new Float32Array(VERTS * 3);
+  const fillPos  = new Float32Array(VERTS * 3);
+  const fillAArr = new Float32Array(VERTS);
+  const linePos  = new Float32Array(FACES * 18);
+  const lineAArr = new Float32Array(FACES * 6);
+  const lineFArr = new Float32Array(FACES * 6);
+  const ptsPos   = new Float32Array(P_COUNT * 3);
+  const ptsAArr  = new Float32Array(P_COUNT);
+  const ptsSArr  = new Float32Array(P_COUNT);
+  const ptsFArr  = new Float32Array(P_COUNT);
+  const _tv      = new Float32Array(9);
+
+  function dynAttr(arr, size) {
+    const a = new THREE.BufferAttribute(arr, size);
+    a.setUsage(THREE.DynamicDrawUsage);
+    return a;
+  }
+
+  const uColor = { value: new THREE.Color(getAccentHex()) };
+  const uFlash = { value: new THREE.Color(0xffffff) };
+  const uScale = { value: 1 };
+  const uGroup = { value: 1 };
+
+  const VSH_FLAT = `
+    attribute float aA;
+    varying float vA;
+    void main() {
+      vA = aA;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }`;
+  const FSH_FLAT = `
+    uniform vec3 uColor;
+    uniform float uOp;
+    varying float vA;
+    void main() {
+      gl_FragColor = vec4(uColor, vA * uOp);
+    }`;
+  const VSH_LINE = `
+    attribute float aA;
+    attribute float aF;
+    varying float vA;
+    varying float vF;
+    void main() {
+      vA = aA; vF = aF;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }`;
+  const FSH_LINE = `
+    uniform vec3 uColor;
+    uniform vec3 uFlash;
+    uniform float uOp;
+    varying float vA;
+    varying float vF;
+    void main() {
+      gl_FragColor = vec4(mix(uColor, uFlash, vF), vA * uOp);
+    }`;
+  const VSH_PTS = `
+    attribute float aA;
+    attribute float aS;
+    attribute float aF;
+    varying float vA;
+    varying float vF;
+    uniform float uScale;
+    uniform float uGroup;
+    void main() {
+      vA = aA; vF = aF;
+      vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      gl_PointSize = aS * uGroup * uScale / -mv.z;
+      gl_Position = projectionMatrix * mv;
+    }`;
+  const FSH_PTS = `
+    uniform vec3 uColor;
+    uniform vec3 uFlash;
+    uniform float uOp;
+    varying float vA;
+    varying float vF;
+    void main() {
+      float d = length(gl_PointCoord - 0.5);
+      float m = smoothstep(0.5, 0.16, d);
+      gl_FragColor = vec4(mix(uColor, uFlash, vF), vA * m * uOp);
+    }`;
+
+  const fillMat = new THREE.ShaderMaterial({
+    vertexShader: VSH_FLAT, fragmentShader: FSH_FLAT,
+    uniforms: { uColor, uOp: { value: 1 } },
+    transparent: true, depthWrite: false, depthTest: false, side: THREE.DoubleSide,
   });
-  const ico = new THREE.Mesh(icoGeo, icoMat);
-  scene.add(ico);
-  const origPos = icoGeo.attributes.position.array.slice();
-
-  // Dot cloud at vertices for sparkle
-  const dotsGeo = new THREE.BufferGeometry();
-  dotsGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(origPos), 3));
-  const dotsMat = new THREE.PointsMaterial({
-    color: getAccentHex(), size: 0.045, transparent: true, opacity: 0.45, sizeAttenuation: true
+  const lineMat = new THREE.ShaderMaterial({
+    vertexShader: VSH_LINE, fragmentShader: FSH_LINE,
+    uniforms: { uColor, uFlash, uOp: { value: 1 } },
+    transparent: true, depthWrite: false, depthTest: false,
   });
-  const dots = new THREE.Points(dotsGeo, dotsMat);
-  scene.add(dots);
+  const ptsMat = new THREE.ShaderMaterial({
+    vertexShader: VSH_PTS, fragmentShader: FSH_PTS,
+    uniforms: { uColor, uFlash, uScale, uGroup, uOp: { value: 1 } },
+    transparent: true, depthWrite: false, depthTest: false,
+  });
 
-  // ── Keyword Sprites ───────────────────────────────────────────
+  const fillGeo = new THREE.BufferGeometry();
+  fillGeo.setAttribute('position', dynAttr(fillPos, 3));
+  fillGeo.setAttribute('aA', dynAttr(fillAArr, 1));
+  const fillMesh = new THREE.Mesh(fillGeo, fillMat);
+  fillMesh.frustumCulled = false;
+  fillMesh.renderOrder = 1;
+  group.add(fillMesh);
+
+  const lineGeo = new THREE.BufferGeometry();
+  lineGeo.setAttribute('position', dynAttr(linePos, 3));
+  lineGeo.setAttribute('aA', dynAttr(lineAArr, 1));
+  lineGeo.setAttribute('aF', dynAttr(lineFArr, 1));
+  const lineSeg = new THREE.LineSegments(lineGeo, lineMat);
+  lineSeg.frustumCulled = false;
+  lineSeg.renderOrder = 2;
+  group.add(lineSeg);
+
+  const ptsGeo = new THREE.BufferGeometry();
+  ptsGeo.setAttribute('position', dynAttr(ptsPos, 3));
+  ptsGeo.setAttribute('aA', dynAttr(ptsAArr, 1));
+  ptsGeo.setAttribute('aS', dynAttr(ptsSArr, 1));
+  ptsGeo.setAttribute('aF', dynAttr(ptsFArr, 1));
+  const pts = new THREE.Points(ptsGeo, ptsMat);
+  pts.frustumCulled = false;
+  pts.renderOrder = 3;
+  group.add(pts);
+
+  // ── Núcleo de energía: flash central mientras se desarma ─────
+  function makeHaloTexture() {
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const g = c.getContext('2d');
+    const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grad.addColorStop(0,    'rgba(255,255,255,1)');
+    grad.addColorStop(0.25, 'rgba(255,255,255,0.55)');
+    grad.addColorStop(0.6,  'rgba(255,255,255,0.16)');
+    grad.addColorStop(1,    'rgba(255,255,255,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 128, 128);
+    return new THREE.CanvasTexture(c);
+  }
+  const haloMat = new THREE.SpriteMaterial({
+    map: makeHaloTexture(), color: getAccentHex(),
+    transparent: true, opacity: 0, depthWrite: false, depthTest: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const halo = new THREE.Sprite(haloMat);
+  halo.renderOrder = 4;
+  group.add(halo);
+
+  // ── Keyword Sprites (orbitan el blob, hijos del grupo) ────────
   function makeKeywordTexture(text) {
     const c = document.createElement('canvas');
     c.width = 256; c.height = 64;
@@ -1188,11 +1391,13 @@ document.querySelectorAll('.contact-item').forEach(el => {
   const kwSprites = kwLabels.map((label, i) => {
     const mat = new THREE.SpriteMaterial({
       map: makeKeywordTexture(label),
-      color: getAccentHex(), transparent: true, opacity: 0.7, depthWrite: false
+      color: getAccentHex(), transparent: true, opacity: 0.7,
+      depthWrite: false, depthTest: false,
     });
     const sprite = new THREE.Sprite(mat);
     sprite.scale.set(1.1, 0.28, 1);
-    scene.add(sprite);
+    sprite.renderOrder = 0;
+    group.add(sprite);
     return {
       sprite,
       baseAngle: (i / kwLabels.length) * Math.PI * 2,
@@ -1201,52 +1406,205 @@ document.querySelectorAll('.contact-item').forEach(el => {
     };
   });
 
-  const _spriteNDC = new THREE.Vector3();
+  // ── Resize: canvas fullscreen, blob anclado donde siempre ────
+  const BLOB_PX = 480, RIGHT_PX = 30;
+  let groupBaseX = 0, groupBaseScale = 1;
+  function resize3d() {
+    const w = window.innerWidth, h = window.innerHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    const halfH = Math.tan((camera.fov * Math.PI) / 360) * camera.position.z;
+    const halfW = halfH * camera.aspect;
+    const cxPx  = w - (RIGHT_PX + BLOB_PX / 2);
+    groupBaseX     = ((cxPx / w) * 2 - 1) * halfW;
+    groupBaseScale = BLOB_PX / h;
+    uScale.value   = (h * renderer.getPixelRatio()) / 2;
+  }
+  window.addEventListener('resize', () => setTimeout(resize3d, 100));
+  resize3d();
 
-  // ── Loop de animación propio ──────────────────────────────────
-  let t3d = 0;
+  // ── Progress de deconstrucción: scrubbed por el scroll ────────
+  // 0 en reposo → 1 cuando el hero terminó de salir (~90% de su alto).
+  function deconProgress() {
+    const heroH = heroEl.offsetHeight || window.innerHeight;
+    return clamp((scrollY - heroH * 0.05) / (heroH * 0.85), 0, 1);
+  }
+
+  let t3d = 0, rotX = 0, rotY = 0, pSmooth = 0, sleeping = false;
+
   function tick3d() {
     requestAnimationFrame(tick3d);
+
+    const pT = deconProgress();
+    pSmooth += (pT - pSmooth) * 0.1;
+    if (Math.abs(pT - pSmooth) < 0.001) pSmooth = pT;
+    // Reduced motion: sin vuelo de piezas, solo un fade del blob
+    const p = reduceMotion3d ? 0 : pSmooth;
+    const globalFade = reduceMotion3d ? 1 - sstep(0.05, 0.5, pT) : 1;
+
+    // Dormir el canvas cuando la deconstrucción terminó (ahorra GPU)
+    const asleep = reduceMotion3d ? pT >= 0.55 : (pT >= 1 && pSmooth > 0.995);
+    if (asleep !== sleeping) {
+      sleeping = asleep;
+      canvas.style.visibility = asleep ? 'hidden' : '';
+    }
+    if (asleep) return;
+
     t3d += 0.012;
 
     const accentHex = getAccentHex();
+    const isLight   = document.body.classList.contains('claro');
+    uColor.value.setHex(accentHex);
+    uFlash.value.setHex(isLight ? 0x1d1480 : 0xffffff);
+    fillMat.uniforms.uOp.value = (isLight ? 1.6  : 1) * globalFade;
+    lineMat.uniforms.uOp.value = (isLight ? 1.25 : 1) * globalFade;
+    ptsMat.uniforms.uOp.value  = (isLight ? 1.2  : 1) * globalFade;
 
-    // Morph icosahedron vertices
-    const pos = icoGeo.attributes.position.array;
-    for (let i = 0; i < pos.length; i += 3) {
-      const ox = origPos[i], oy = origPos[i + 1], oz = origPos[i + 2];
-      const n = Math.sin(ox * 2.5 + t3d * 0.9) * Math.cos(oy * 2 + t3d * 0.7) * Math.sin(oz * 2.5 + t3d * 0.5);
-      const mi = 1 + mx3 * 0.07 * (ox / 1.3) + my3 * 0.05 * (oy / 1.3);
-      const s = (1 + n * 0.28) * mi;
-      pos[i] = ox * s; pos[i + 1] = oy * s; pos[i + 2] = oz * s;
+    // Rotación integrada — se calma conforme el sólido se desarma,
+    // así las piezas vuelan estables (y sigue siendo reversible)
+    const calm = 1 - p * 0.92;
+    rotY += 0.00144 * calm;
+    rotX += 0.00096 * calm;
+    group.rotation.set(rotX + my3 * 0.4 * calm, rotY + mx3 * 0.4 * calm, 0);
+
+    // Drift del enjambre: sube, se corre hacia el centro y se acerca
+    group.position.set(groupBaseX - p * 0.55, Math.pow(p, 1.25) * 1.05, p * 0.6);
+    const gs = groupBaseScale * (1 + p * 0.4);
+    group.scale.setScalar(gs);
+    uGroup.value = gs;
+
+    // ── Breathing: morph senoidal de siempre, atenuado al desarmar ──
+    const amp = 0.17 * (1 - p * 0.55);
+    for (let i = 0; i < VERTS * 3; i += 3) {
+      const ox = basePos[i], oy = basePos[i + 1], oz = basePos[i + 2];
+      const n  = Math.sin(ox * 2.5 + t3d * 0.9) * Math.cos(oy * 2 + t3d * 0.7) * Math.sin(oz * 2.5 + t3d * 0.5);
+      const mi = 1 + (mx3 * 0.07 * (ox / RADIUS) + my3 * 0.05 * (oy / RADIUS)) * calm;
+      const s  = (1 + n * amp) * mi;
+      morphPos[i] = ox * s; morphPos[i + 1] = oy * s; morphPos[i + 2] = oz * s;
     }
-    icoGeo.attributes.position.needsUpdate = true;
-    dotsGeo.attributes.position.array.set(pos);
-    dotsGeo.attributes.position.needsUpdate = true;
 
-    ico.rotation.y = t3d * 0.12 + mx3 * 0.4;
-    ico.rotation.x = t3d * 0.08 + my3 * 0.4;
-    dots.rotation.copy(ico.rotation);
-    icoMat.color.setHex(accentHex);
-    dotsMat.color.setHex(accentHex);
+    // ── Deconstrucción por cara ──
+    const ST = 0.55; // ventana de stagger: la onda tarda esto en recorrer el sólido
+    let pi = 0;
+    for (let f = 0; f < FACES; f++) {
+      const fd = faceData[f];
+      const o  = f * 9;
+      const lt = clamp(p * (1 + ST) - fd.stagger * ST, 0, 1);
 
-    // Orbit keyword sprites
+      const cX = (morphPos[o]     + morphPos[o + 3] + morphPos[o + 6]) / 3;
+      const cY = (morphPos[o + 1] + morphPos[o + 4] + morphPos[o + 7]) / 3;
+      const cZ = (morphPos[o + 2] + morphPos[o + 5] + morphPos[o + 8]) / 3;
+
+      const flyAmt = Math.pow(lt, 1.7) * fd.dist;
+      const fx = fd.fx * flyAmt, fy = fd.fy * flyAmt, fz = fd.fz * flyAmt;
+
+      // Rotación de la cara alrededor de su centroide (Rodrigues)
+      const ang = lt * fd.spin;
+      const ca = Math.cos(ang), sa = Math.sin(ang), ti = 1 - ca;
+      const ax = fd.ax, ay = fd.ay, az = fd.az;
+      const r00 = ca + ax * ax * ti,      r01 = ax * ay * ti - az * sa, r02 = ax * az * ti + ay * sa;
+      const r10 = ay * ax * ti + az * sa, r11 = ca + ay * ay * ti,      r12 = ay * az * ti - ax * sa;
+      const r20 = az * ax * ti - ay * sa, r21 = az * ay * ti + ax * sa, r22 = ca + az * az * ti;
+
+      const shrink = 1 - sstep(0.5, 0.93, lt);
+      const flash  = bell(lt, 0.2, 0.18); // destello al desprenderse
+      const aLine  = (0.3   + flash * 0.85) * (1 - sstep(0.5,  0.88, lt));
+      const aFill  = (0.075 + flash * 0.12) * (1 - sstep(0.42, 0.8,  lt));
+      const aDot   = (0.5   + flash * 0.6 ) * (1 - sstep(0.55, 0.9,  lt));
+
+      for (let k = 0; k < 3; k++) {
+        const vx = morphPos[o + k * 3]     - cX;
+        const vy = morphPos[o + k * 3 + 1] - cY;
+        const vz = morphPos[o + k * 3 + 2] - cZ;
+        const sx = vx * shrink, sy = vy * shrink, sz = vz * shrink;
+        _tv[k * 3]     = cX + fx + r00 * sx + r01 * sy + r02 * sz;
+        _tv[k * 3 + 1] = cY + fy + r10 * sx + r11 * sy + r12 * sz;
+        _tv[k * 3 + 2] = cZ + fz + r20 * sx + r21 * sy + r22 * sz;
+      }
+
+      fillPos.set(_tv, o);
+      fillAArr[f * 3] = fillAArr[f * 3 + 1] = fillAArr[f * 3 + 2] = aFill;
+
+      const lo = f * 18;
+      linePos[lo]      = _tv[0]; linePos[lo + 1]  = _tv[1]; linePos[lo + 2]  = _tv[2];
+      linePos[lo + 3]  = _tv[3]; linePos[lo + 4]  = _tv[4]; linePos[lo + 5]  = _tv[5];
+      linePos[lo + 6]  = _tv[3]; linePos[lo + 7]  = _tv[4]; linePos[lo + 8]  = _tv[5];
+      linePos[lo + 9]  = _tv[6]; linePos[lo + 10] = _tv[7]; linePos[lo + 11] = _tv[8];
+      linePos[lo + 12] = _tv[6]; linePos[lo + 13] = _tv[7]; linePos[lo + 14] = _tv[8];
+      linePos[lo + 15] = _tv[0]; linePos[lo + 16] = _tv[1]; linePos[lo + 17] = _tv[2];
+      for (let k = 0; k < 6; k++) {
+        lineAArr[f * 6 + k] = aLine;
+        lineFArr[f * 6 + k] = flash * 0.6;
+      }
+
+      // Sparkles de vértices: vuelan pegados a la cara
+      const cflash = flash * 0.5;
+      for (let k = 0; k < 3; k++) {
+        ptsPos[pi * 3]     = _tv[k * 3];
+        ptsPos[pi * 3 + 1] = _tv[k * 3 + 1];
+        ptsPos[pi * 3 + 2] = _tv[k * 3 + 2];
+        ptsAArr[pi] = aDot;
+        ptsSArr[pi] = k === 0 ? fd.cs0 : (k === 1 ? fd.cs1 : fd.cs2);
+        ptsFArr[pi] = cflash;
+        pi++;
+      }
+
+      // Partículas de disolución: nacen cuando la cara se encoge,
+      // se sueltan con turbulencia y uplift, y mueren al final
+      const rel = sstep(0.45, 0.82, lt);
+      const fr  = sstep(0.45, 1, lt);
+      for (let k = 0; k < INNER; k++) {
+        const pd = innerData[f * INNER + k];
+        let bx = pd.b0 * _tv[0] + pd.b1 * _tv[3] + pd.b2 * _tv[6];
+        let by = pd.b0 * _tv[1] + pd.b1 * _tv[4] + pd.b2 * _tv[7];
+        let bz = pd.b0 * _tv[2] + pd.b1 * _tv[5] + pd.b2 * _tv[8];
+        if (rel > 0) {
+          const wob = 0.13 * fr;
+          const tx = cX + fx + pd.dx * fr * pd.dist + Math.sin(t3d * 1.4 + pd.phase) * wob;
+          const ty = cY + fy + pd.dy * fr * pd.dist + Math.cos(t3d * 1.1 + pd.phase * 1.7) * wob + fr * fr * 1.1;
+          const tz = cZ + fz + pd.dz * fr * pd.dist + Math.sin(t3d * 0.9 + pd.phase * 2.3) * wob;
+          bx += (tx - bx) * rel;
+          by += (ty - by) * rel;
+          bz += (tz - bz) * rel;
+        }
+        ptsPos[pi * 3] = bx; ptsPos[pi * 3 + 1] = by; ptsPos[pi * 3 + 2] = bz;
+        ptsAArr[pi] = bell(lt, 0.66, 0.34) * 0.85;
+        ptsSArr[pi] = pd.size * (1 + rel * 0.7 * (1 - fr));
+        ptsFArr[pi] = bell(lt, 0.55, 0.18) * 0.7;
+        pi++;
+      }
+    }
+
+    fillGeo.attributes.position.needsUpdate = true;
+    fillGeo.attributes.aA.needsUpdate = true;
+    lineGeo.attributes.position.needsUpdate = true;
+    lineGeo.attributes.aA.needsUpdate = true;
+    lineGeo.attributes.aF.needsUpdate = true;
+    ptsGeo.attributes.position.needsUpdate = true;
+    ptsGeo.attributes.aA.needsUpdate = true;
+    ptsGeo.attributes.aS.needsUpdate = true;
+    ptsGeo.attributes.aF.needsUpdate = true;
+
+    // Núcleo de energía: se enciende a mitad del desarme y se apaga
+    haloMat.opacity = bell(p, 0.35, 0.33) * 0.5 * globalFade;
+    haloMat.color.setHex(accentHex);
+    haloMat.blending = isLight ? THREE.NormalBlending : THREE.AdditiveBlending;
+    const hScale = 2.2 + p * 3.4;
+    halo.scale.set(hScale, hScale, 1);
+
+    // Keywords: orbitan, y al primer gesto de scroll se alejan y apagan
+    const kwFade = 1 - sstep(0.03, 0.3, p);
     kwSprites.forEach(({ sprite, baseAngle, radius, yi }) => {
       const angle = baseAngle + t3d * 0.22;
-      const sx = Math.cos(angle) * radius;
-      const sz = Math.sin(angle) * radius;
+      const kr = radius * (1 + p * 1.6);
+      const sx = Math.cos(angle) * kr;
+      const sz = Math.sin(angle) * kr;
       sprite.position.set(sx, yi + Math.sin(t3d * 0.4 + baseAngle) * 0.2, sz);
 
-      // Depth fade: sprites behind the blob appear dimmer
-      const depthOpacity = 0.04 + 0.32 * (0.5 + 0.5 * (sz / radius));
-
-      // Edge fade: project to NDC (-1..1) and fade before WebGL clips
-      _spriteNDC.copy(sprite.position).project(camera);
-      const ndcDist = Math.sqrt(_spriteNDC.x * _spriteNDC.x + _spriteNDC.y * _spriteNDC.y);
-      const t = Math.max(0, Math.min(1, (ndcDist - 0.5) / 0.4));
-      const edgeFade = 1 - t * t * (3 - 2 * t); // smoothstep
-
-      sprite.material.opacity = depthOpacity * edgeFade;
+      // Depth fade: los sprites detrás del blob se ven más tenues
+      const depthOpacity = 0.04 + 0.32 * (0.5 + 0.5 * (sz / kr));
+      sprite.material.opacity = depthOpacity * kwFade * globalFade;
       sprite.material.color.setHex(accentHex);
     });
 
