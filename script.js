@@ -733,7 +733,7 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
       this.energy = 0;
     }
 
-    update(mx, my) {
+    update(mx, my, field) {
       const dx   = mx - this.x;
       const dy   = my - this.y;
       const dist = Math.hypot(dx, dy);
@@ -753,6 +753,21 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
         this.energy = lerp(this.energy, 0.8, 0.12);
       } else {
         this.energy = lerp(this.energy, 0, 0.04);
+      }
+
+      // Campo del icosaedro: atracción + componente tangencial → las
+      // partículas orbitan el sólido (se siente un campo de fuerza).
+      if (field && field.strength > 0.01) {
+        const fdx = field.cx - this.x, fdy = field.cy - this.y;
+        const fdist = Math.hypot(fdx, fdy);
+        const reach = field.r * 1.7;
+        if (fdist < reach && fdist > 1) {
+          const k  = (1 - fdist / reach) * field.strength * 0.05;
+          const ix = fdx / fdist, iy = fdy / fdist;
+          // Tangencial dominante (orbitan) + radial débil (cohesión sin colapso)
+          this.vx += ix * k * 0.3 - iy * k;
+          this.vy += iy * k * 0.3 + ix * k;
+        }
       }
 
       // Vida propia — deriva sinusoidal única por partícula
@@ -777,26 +792,44 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
       if (this.y > H+20) this.y = -20;
     }
 
-    draw(rgb, boost) {
+    draw(rgb, boost, field) {
+      // Si la partícula cae detrás del icosaedro: se atenúa y se refracta
+      // (desplazamiento radial oscilante) → se nota que está "adentro/atrás".
+      let x = this.x, y = this.y, occ = 0;
+      if (field && field.strength > 0.01) {
+        const ddx = this.x - field.cx, ddy = this.y - field.cy;
+        const dd = Math.hypot(ddx, ddy);
+        if (dd < field.r) {
+          occ = (1 - dd / field.r) * field.strength;
+          const inv = dd > 0.001 ? 1 / dd : 0;
+          const wob = Math.sin(this.phase * 3 + dd * 0.05) * occ * 6;
+          x += ddx * inv * wob;
+          y += ddy * inv * wob;
+        }
+      }
+
       const pulse = 0.75 + 0.25 * Math.sin(this.phase);
       const energyBoost = 1 + this.energy * 2.5;
-      const alpha = Math.min(this.baseAlpha * pulse * boost * energyBoost, 0.95);
-      const radius = this.r * pulse * (1 + this.energy * 0.8);
+      let alpha = Math.min(this.baseAlpha * pulse * boost * energyBoost, 0.95);
+      let radius = this.r * pulse * (1 + this.energy * 0.8);
+      // Oclusión: el volumen translúcido del sólido atenúa lo que tiene detrás
+      alpha  *= (1 - occ * 0.78);
+      radius *= (1 - occ * 0.22);
 
       // Halo brillante cuando tiene energía
       if (this.energy > 0.15) {
-        const haloAlpha = this.energy * 0.18 * boost;
-        const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, radius * 5);
+        const haloAlpha = this.energy * 0.18 * boost * (1 - occ * 0.7);
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, radius * 5);
         grad.addColorStop(0, `rgba(${rgb},${haloAlpha})`);
         grad.addColorStop(1, `rgba(${rgb},0)`);
         ctx.beginPath();
-        ctx.arc(this.x, this.y, radius * 5, 0, Math.PI * 2);
+        ctx.arc(x, y, radius * 5, 0, Math.PI * 2);
         ctx.fillStyle = grad;
         ctx.fill();
       }
 
       ctx.beginPath();
-      ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(${rgb},${alpha})`;
       ctx.fill();
     }
@@ -812,11 +845,14 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
     const isLight = document.body.classList.contains('claro');
     const boost   = isLight ? 5.0 : 1;
     const lBoost  = isLight ? 6.5 : 1;
+    // Campo del icosaedro (centro/radio en px de pantalla + intensidad).
+    // Lo exporta el hero 3D; null si está dormido o fuera del hero.
+    const field   = window._icoField;
 
     ctx.clearRect(0, 0, W, H);
 
     // Update partículas
-    particles.forEach(p => p.update(nmx, nmy));
+    particles.forEach(p => p.update(nmx, nmy, field));
 
     // Dibujar conexiones con grosor variable por distancia
     for (let i = 0; i < particles.length; i++) {
@@ -840,6 +876,12 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
         if (mdist < CFG.mouseRadius) {
           alpha = Math.min(alpha + (1 - mdist / CFG.mouseRadius) * CFG.mouseLineAlpha * lBoost,
                           CFG.mouseLineAlpha * lBoost * 1.5);
+        }
+
+        // Oclusión: las conexiones detrás del sólido se atenúan
+        if (field && field.strength > 0.01) {
+          const omd = Math.hypot(midX - field.cx, midY - field.cy);
+          if (omd < field.r) alpha *= (1 - (1 - omd / field.r) * field.strength * 0.82);
         }
 
         // Grosor variable: más grueso si hay energía o si está cerca del mouse
@@ -869,7 +911,7 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
     }
 
     // Dibujar nodos encima
-    particles.forEach(p => p.draw(rgb, boost));
+    particles.forEach(p => p.draw(rgb, boost, field));
 
     // Dot en el mouse — único cursor
     if (nmx > 0) {
@@ -877,20 +919,36 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
                       document.body.classList.contains('cursor-card');
       const isClick = document.body.classList.contains('cursor-click');
 
-      const dotA   = isLight ? 0.95 : 0.88;
-      const coreR  = isClick ? 2 : isHover ? 4 : 3;
-      const haloR  = isClick ? 10 : isHover ? 22 : 14;
-      const haloA  = isClick ? 0.35 : 0.22;
+      let dotA   = isLight ? 0.95 : 0.88;
+      let coreR  = isClick ? 2 : isHover ? 4 : 3;
+      let haloR  = isClick ? 10 : isHover ? 22 : 14;
+      let haloA  = isClick ? 0.35 : 0.22;
+
+      // Si el cursor entra en el icosaedro: se atenúa y refracta (queda detrás).
+      let cx = nmx, cy = nmy;
+      if (field && field.strength > 0.01) {
+        const ddx = nmx - field.cx, ddy = nmy - field.cy;
+        const dd = Math.hypot(ddx, ddy);
+        if (dd < field.r) {
+          const cOcc = (1 - dd / field.r) * field.strength;
+          const inv  = dd > 0.001 ? 1 / dd : 0;
+          const wob  = Math.sin(performance.now() * 0.005 + dd * 0.05) * cOcc * 5;
+          cx += ddx * inv * wob; cy += ddy * inv * wob;
+          dotA  *= (1 - cOcc * 0.6);
+          haloA *= (1 - cOcc * 0.5);
+          coreR *= (1 - cOcc * 0.25);
+        }
+      }
 
       // Halo difuso
-      const halo = ctx.createRadialGradient(nmx, nmy, 0, nmx, nmy, haloR);
+      const halo = ctx.createRadialGradient(cx, cy, 0, cx, cy, haloR);
       halo.addColorStop(0,   `rgba(${rgb},${haloA})`);
       halo.addColorStop(1,   `rgba(${rgb},0)`);
-      ctx.beginPath(); ctx.arc(nmx, nmy, haloR, 0, Math.PI * 2);
+      ctx.beginPath(); ctx.arc(cx, cy, haloR, 0, Math.PI * 2);
       ctx.fillStyle = halo; ctx.fill();
 
       // Núcleo
-      ctx.beginPath(); ctx.arc(nmx, nmy, coreR, 0, Math.PI * 2);
+      ctx.beginPath(); ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(${rgb},${dotA})`;
       ctx.fill();
     }
@@ -1249,29 +1307,69 @@ document.querySelectorAll('.contact-item').forEach(el => {
   const uFlash = { value: new THREE.Color(0xffffff) };
   const uScale = { value: 1 };
   const uGroup = { value: 1 };
+  // Profundidad (front/back) + reactividad al cursor. Compartidos por los
+  // materiales del sólido; tick3d los actualiza cada frame.
+  const uNear     = { value: 4 };
+  const uFar      = { value: 6 };
+  const uCursor   = { value: new THREE.Vector2(-2, -2) }; // NDC del cursor (offscreen por defecto)
+  const uAspect   = { value: 1 };
+  const uReactR   = { value: 0.62 };  // radio de reacción (NDC corregido por aspect)
+  const uReactStr = { value: 1 };     // intensidad de la reacción (0 al deconstruir)
+
+  // VS compartido: además de proyectar, expone la profundidad en view-space
+  // (vDepth) y la cercanía al cursor en pantalla (vProx).
+  const VS_HEAD = `
+    uniform vec2 uCursor; uniform float uAspect; uniform float uReactR;
+    varying float vDepth; varying float vProx;
+    void setupDepthProx(vec4 mv, vec4 cl) {
+      vDepth = -mv.z;
+      vec2 ndc = cl.xy / cl.w;
+      vec2 d = (ndc - uCursor) * vec2(uAspect, 1.0);
+      vProx = clamp(1.0 - length(d) / uReactR, 0.0, 1.0);
+    }`;
+  // FS compartido: factor de profundidad f (0 frente → 1 fondo).
+  const FS_HEAD = `
+    uniform float uNear; uniform float uFar; uniform float uReactStr;
+    varying float vDepth; varying float vProx;
+    float depthF() { return clamp((vDepth - uNear) / (uFar - uNear), 0.0, 1.0); }`;
 
   const VSH_FLAT = `
     attribute float aA;
     varying float vA;
+    ${VS_HEAD}
     void main() {
       vA = aA;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      vec4 cl = projectionMatrix * mv;
+      setupDepthProx(mv, cl);
+      gl_Position = cl;
     }`;
   const FSH_FLAT = `
     uniform vec3 uColor;
+    uniform vec3 uFlash;
     uniform float uOp;
     varying float vA;
+    ${FS_HEAD}
     void main() {
-      gl_FragColor = vec4(uColor, vA * uOp);
+      float f = depthF();
+      float depthA = mix(1.15, 0.32, f);             // frente opaco, fondo retrocede
+      vec3 col = uColor * mix(1.0, 0.45, f);
+      float react = vProx * vProx * uReactStr * mix(1.0, 0.45, f);
+      col = mix(col, uFlash, react * 0.5);
+      gl_FragColor = vec4(col, vA * uOp * depthA + react * 0.08);
     }`;
   const VSH_LINE = `
     attribute float aA;
     attribute float aF;
     varying float vA;
     varying float vF;
+    ${VS_HEAD}
     void main() {
       vA = aA; vF = aF;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      vec4 cl = projectionMatrix * mv;
+      setupDepthProx(mv, cl);
+      gl_Position = cl;
     }`;
   const FSH_LINE = `
     uniform vec3 uColor;
@@ -1279,8 +1377,15 @@ document.querySelectorAll('.contact-item').forEach(el => {
     uniform float uOp;
     varying float vA;
     varying float vF;
+    ${FS_HEAD}
     void main() {
-      gl_FragColor = vec4(mix(uColor, uFlash, vF), vA * uOp);
+      float f = depthF();
+      float depthA = mix(1.2, 0.26, f);              // aristas del fondo casi desaparecen
+      vec3 col = uColor * mix(1.0, 0.4, f);
+      col = mix(col, uFlash, vF);                    // flash de deconstrucción
+      float react = vProx * vProx * uReactStr * mix(1.0, 0.4, f);
+      col = mix(col, uFlash, react * 0.7);           // se encienden bajo el cursor
+      gl_FragColor = vec4(col, vA * uOp * depthA + react * 0.16);
     }`;
   const VSH_PTS = `
     attribute float aA;
@@ -1288,11 +1393,13 @@ document.querySelectorAll('.contact-item').forEach(el => {
     attribute float aF;
     varying float vA;
     varying float vF;
+    varying float vDepth;
     uniform float uScale;
     uniform float uGroup;
     void main() {
       vA = aA; vF = aF;
       vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      vDepth = -mv.z;
       gl_PointSize = aS * uGroup * uScale / -mv.z;
       gl_Position = projectionMatrix * mv;
     }`;
@@ -1300,27 +1407,31 @@ document.querySelectorAll('.contact-item').forEach(el => {
     uniform vec3 uColor;
     uniform vec3 uFlash;
     uniform float uOp;
+    uniform float uNear;
+    uniform float uFar;
     varying float vA;
     varying float vF;
+    varying float vDepth;
     void main() {
       float d = length(gl_PointCoord - 0.5);
       float m = smoothstep(0.5, 0.16, d);
-      gl_FragColor = vec4(mix(uColor, uFlash, vF), vA * m * uOp);
+      float f = clamp((vDepth - uNear) / (uFar - uNear), 0.0, 1.0);
+      gl_FragColor = vec4(mix(uColor, uFlash, vF), vA * m * uOp * mix(1.1, 0.4, f));
     }`;
 
   const fillMat = new THREE.ShaderMaterial({
     vertexShader: VSH_FLAT, fragmentShader: FSH_FLAT,
-    uniforms: { uColor, uOp: { value: 1 } },
+    uniforms: { uColor, uFlash, uOp: { value: 1 }, uNear, uFar, uReactStr, uCursor, uAspect, uReactR },
     transparent: true, depthWrite: false, depthTest: false, side: THREE.DoubleSide,
   });
   const lineMat = new THREE.ShaderMaterial({
     vertexShader: VSH_LINE, fragmentShader: FSH_LINE,
-    uniforms: { uColor, uFlash, uOp: { value: 1 } },
+    uniforms: { uColor, uFlash, uOp: { value: 1 }, uNear, uFar, uReactStr, uCursor, uAspect, uReactR },
     transparent: true, depthWrite: false, depthTest: false,
   });
   const ptsMat = new THREE.ShaderMaterial({
     vertexShader: VSH_PTS, fragmentShader: FSH_PTS,
-    uniforms: { uColor, uFlash, uScale, uGroup, uOp: { value: 1 } },
+    uniforms: { uColor, uFlash, uScale, uGroup, uOp: { value: 1 }, uNear, uFar },
     transparent: true, depthWrite: false, depthTest: false,
   });
 
@@ -1420,6 +1531,7 @@ document.querySelectorAll('.contact-item').forEach(el => {
     groupBaseX     = ((cxPx / w) * 2 - 1) * halfW;
     groupBaseScale = BLOB_PX / h;
     uScale.value   = (h * renderer.getPixelRatio()) / 2;
+    uAspect.value  = w / h;
   }
   window.addEventListener('resize', () => setTimeout(resize3d, 100));
   resize3d();
@@ -1432,6 +1544,7 @@ document.querySelectorAll('.contact-item').forEach(el => {
   }
 
   let t3d = 0, rotX = 0, rotY = 0, pSmooth = 0, sleeping = false;
+  const _projV = new THREE.Vector3(), _projE = new THREE.Vector3();
 
   function tick3d() {
     requestAnimationFrame(tick3d);
@@ -1449,7 +1562,7 @@ document.querySelectorAll('.contact-item').forEach(el => {
       sleeping = asleep;
       canvas.style.visibility = asleep ? 'hidden' : '';
     }
-    if (asleep) return;
+    if (asleep) { window._icoField = null; return; }
 
     t3d += 0.012;
 
@@ -1473,6 +1586,32 @@ document.querySelectorAll('.contact-item').forEach(el => {
     const gs = groupBaseScale * (1 + p * 0.4);
     group.scale.setScalar(gs);
     uGroup.value = gs;
+
+    // ── Profundidad: rango near/far alrededor del centro del sólido ──
+    const cdist = camera.position.z - group.position.z;
+    const wRad  = RADIUS * gs;
+    uNear.value = cdist - wRad * 1.08;
+    uFar.value  = cdist + wRad * 1.08;
+
+    // ── Cursor en NDC (canvas fullscreen) + reactividad (se apaga al desarmar)
+    uCursor.value.set(
+      (mouseX / window.innerWidth)  * 2 - 1,
+      -((mouseY / window.innerHeight) * 2 - 1)
+    );
+    uReactStr.value = (1 - sstep(0, 0.4, p)) * globalFade;
+
+    // ── Campo de oclusión: centro y radio del sólido en px de pantalla, para
+    //    que el canvas neural sepa qué partículas/cursor quedan detrás. ──
+    _projV.copy(group.position).project(camera);
+    _projE.set(group.position.x + wRad, group.position.y, group.position.z).project(camera);
+    const W2 = window.innerWidth, H2 = window.innerHeight;
+    const scx = (_projV.x * 0.5 + 0.5) * W2, scy = (-_projV.y * 0.5 + 0.5) * H2;
+    const ecx = (_projE.x * 0.5 + 0.5) * W2, ecy = (-_projE.y * 0.5 + 0.5) * H2;
+    window._icoField = {
+      cx: scx, cy: scy,
+      r: Math.hypot(ecx - scx, ecy - scy) * 1.12,
+      strength: (1 - sstep(0, 0.5, p)) * globalFade,
+    };
 
     // ── Breathing: morph senoidal de siempre, atenuado al desarmar ──
     const amp = 0.17 * (1 - p * 0.55);
