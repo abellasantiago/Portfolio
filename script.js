@@ -1256,6 +1256,322 @@ document.querySelectorAll('.contact-item').forEach(el => {
 })();
 
 
+// ─── SA POINT CLOUD — logo de partículas ─────────────────────
+// Cientos de partículas muestreadas del texto "SA" (misma fuente
+// que el nav-logo). Flotan dispersas como starfield, convergen en
+// espiral al entrar en viewport y se repelen del cursor.
+// S = color de texto, A = acento (igual que el logo del navbar).
+(function initSACloud() {
+  const canvas = document.getElementById('sa-cloud-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const CFG = {
+    densityArea:  330,   // px² por partícula (menor = más denso)
+    minCount:     280,
+    maxCount:     950,
+    springK:      0.032, // resorte hacia el target
+    damping:      0.86,
+    repelRadius:  110,
+    repelForce:   5.0,
+    swirl:        3.2,   // impulso tangencial al converger (espiral)
+    dotMin:       0.9,
+    dotMax:       2.2,
+    linkDist:     17,    // distancia máx entre targets para enlazar
+    linkBreak:    46,    // distancia actual a la que el enlace se corta
+    linkAlpha:    0.10,
+    maxLinks:     900,
+  };
+
+  let W = 0, H = 0;
+  let particles = [];
+  let links = [];
+  let triggered = false;
+  let triggerAt = 0;
+
+  // Pointer propio (mouse + touch) en coords de viewport
+  let px = -9999, py = -9999;
+  document.addEventListener('mousemove', e => { px = e.clientX; py = e.clientY; });
+  document.addEventListener('touchmove', e => {
+    if (e.touches.length) { px = e.touches[0].clientX; py = e.touches[0].clientY; }
+  }, { passive: true });
+  document.addEventListener('touchend', () => { px = -9999; py = -9999; });
+
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width < 10) return false;
+    W = Math.round(rect.width);
+    H = Math.round(rect.height);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width  = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return true;
+  }
+
+  // Dibuja "SA" offscreen y devuelve puntos {x, y, letter}.
+  // Truco: S en rojo y A en verde — el canal RGB dice a qué letra
+  // pertenece cada punto muestreado.
+  function sampleLogo() {
+    const off = document.createElement('canvas');
+    off.width = W; off.height = H;
+    const o = off.getContext('2d', { willReadFrequently: true });
+
+    let size = H * 0.94;
+    const setFont = s => { o.font = `800 ${s}px 'Syne', sans-serif`; };
+    setFont(size);
+    let tracking = size * 0.02;
+    let m = o.measureText('SA');
+    const maxW = W * 0.94;
+    if (m.width + tracking > maxW) {
+      size *= maxW / (m.width + tracking);
+      tracking = size * 0.02;
+      setFont(size);
+      m = o.measureText('SA');
+    }
+
+    const asc   = m.actualBoundingBoxAscent  || size * 0.72;
+    const desc  = m.actualBoundingBoxDescent || 0;
+    const baseY = H / 2 + (asc - desc) / 2;
+    const x0    = (W - (m.width + tracking)) / 2;
+
+    o.fillStyle = '#f00';
+    o.fillText('S', x0, baseY);
+    o.fillStyle = '#0f0';
+    o.fillText('A', x0 + o.measureText('S').width + tracking, baseY);
+
+    const img = o.getImageData(0, 0, W, H).data;
+
+    // Cobertura aproximada del glifo para elegir el paso de muestreo
+    let coverage = 0;
+    for (let i = 3; i < img.length; i += 16) if (img[i] > 110) coverage++;
+    coverage *= 4;
+    const desired = clamp(Math.round((W * H) / CFG.densityArea), CFG.minCount, CFG.maxCount);
+    const step = Math.max(2, Math.round(Math.sqrt(coverage / desired)));
+
+    const pts = [];
+    const jit = step * 0.22;
+    for (let y = 0; y < H; y += step) {
+      for (let x = 0; x < W; x += step) {
+        const i = (y * W + x) * 4;
+        if (img[i + 3] < 110) continue;
+        pts.push({
+          x: x + (Math.random() - 0.5) * jit,
+          y: y + (Math.random() - 0.5) * jit,
+          letter: img[i] > img[i + 1] ? 0 : 1,
+        });
+      }
+    }
+    return pts;
+  }
+
+  function buildParticles() {
+    const pts = sampleLogo();
+    if (!pts.length) return;
+    const old = particles;
+    particles = pts.map((pt, i) => {
+      const p = old[i] || {
+        x: Math.random() * W,
+        y: Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        kicked: false,
+        energy: 0,
+      };
+      p.tx = pt.x;
+      p.ty = pt.y;
+      p.letter = pt.letter;
+      p.r = CFG.dotMin + Math.random() * (CFG.dotMax - CFG.dotMin);
+      p.phase = Math.random() * Math.PI * 2;
+      p.baseA = 0.5 + Math.random() * 0.5;
+      // Barrido S → A con dispersión: el logo se enciende de izq. a der.
+      p.delay = (pt.x / W) * 650 + Math.random() * 480;
+      return p;
+    });
+    buildLinks();
+  }
+
+  // Malla: pares de partículas cuyos targets son vecinos
+  function buildLinks() {
+    const all = [];
+    const d2max = CFG.linkDist * CFG.linkDist;
+    for (let i = 0; i < particles.length; i++) {
+      const a = particles[i];
+      for (let j = i + 1; j < particles.length; j++) {
+        const b = particles[j];
+        const dx = a.tx - b.tx, dy = a.ty - b.ty;
+        if (dx * dx + dy * dy < d2max) {
+          all.push([i, j, (a.letter === 0 && b.letter === 0) ? 0 : 1]);
+        }
+      }
+    }
+    // Barajar y recortar: malla parcial tipo constelación + 60fps a salvo
+    for (let i = all.length - 1; i > 0; i--) {
+      const k = Math.floor(Math.random() * (i + 1));
+      [all[i], all[k]] = [all[k], all[i]];
+    }
+    links = all.slice(0, CFG.maxLinks);
+  }
+
+  function getColors() {
+    const cs = getComputedStyle(document.body);
+    const accent = cs.getPropertyValue('--accent-rgb').trim() || '200,241,53';
+    const tm = (cs.color || '').match(/\d+/g);
+    const text = tm ? tm.slice(0, 3).join(',') : '232,232,232';
+    return { accent, text };
+  }
+
+  function drawSACloud() {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width < 10 || !particles.length) return;
+    // Fuera de viewport: no gastar frames
+    if (rect.bottom < -100 || rect.top > window.innerHeight + 100) return;
+
+    const now = performance.now();
+
+    // Disparar convergencia cuando el canvas entra de verdad en viewport
+    if (!triggered && rect.top < window.innerHeight * 0.78 && rect.bottom > window.innerHeight * 0.1) {
+      triggered = true;
+      triggerAt = now;
+    }
+    const t = now / 1000;
+    const { accent, text } = getColors();
+    const isLight   = document.body.classList.contains('claro');
+    const dotBoost  = isLight ? 1.2 : 1;
+    const linkBoost = isLight ? 2.4 : 1;
+
+    ctx.clearRect(0, 0, W, H);
+
+    const mx = px - rect.left;
+    const my = py - rect.top;
+
+    // ── Física ──
+    for (const p of particles) {
+      const active = triggered && (now - triggerAt) >= p.delay;
+
+      if (active) {
+        if (!p.kicked) {
+          // Impulso tangencial único: entran en espiral, no en línea recta
+          p.kicked = true;
+          const ddx = p.tx - p.x, ddy = p.ty - p.y;
+          const dd = Math.hypot(ddx, ddy) || 1;
+          const s = (p.phase > Math.PI ? 1 : -1) * Math.min(dd * 0.02, 1) * CFG.swirl;
+          p.vx += (-ddy / dd) * s;
+          p.vy += ( ddx / dd) * s;
+        }
+        p.vx += (p.tx - p.x) * CFG.springK;
+        p.vy += (p.ty - p.y) * CFG.springK;
+        // Respiración sutil en reposo
+        p.vx += Math.sin(t * 0.9 + p.phase) * 0.012;
+        p.vy += Math.cos(t * 0.7 + p.phase * 1.7) * 0.012;
+      } else {
+        // Deriva libre pre-convergencia (starfield)
+        p.vx += Math.sin(t * 0.5 + p.phase) * 0.006;
+        p.vy += Math.cos(t * 0.4 + p.phase * 1.3) * 0.006;
+        if ((p.x < 0 && p.vx < 0) || (p.x > W && p.vx > 0)) p.vx *= -1;
+        if ((p.y < 0 && p.vy < 0) || (p.y > H && p.vy > 0)) p.vy *= -1;
+      }
+
+      // Repulsión del cursor
+      const dx = p.x - mx, dy = p.y - my;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < CFG.repelRadius * CFG.repelRadius && d2 > 0.01) {
+        const d = Math.sqrt(d2);
+        const f = 1 - d / CFG.repelRadius;
+        p.vx += (dx / d) * f * f * CFG.repelForce;
+        p.vy += (dy / d) * f * f * CFG.repelForce;
+        p.energy = Math.min(1, p.energy + f * 0.35);
+      }
+      p.energy *= 0.94;
+
+      p.vx *= CFG.damping;
+      p.vy *= CFG.damping;
+      p.x += p.vx;
+      p.y += p.vy;
+    }
+
+    // ── Malla (se enciende al terminar de converger) ──
+    const assembleT = triggered ? clamp((now - triggerAt - 500) / 1400, 0, 1) : 0;
+    if (assembleT > 0.02) {
+      ctx.lineWidth = 0.6;
+      for (let k = 0; k < links.length; k++) {
+        const L = links[k];
+        const a = particles[L[0]], b = particles[L[1]];
+        if (!a || !b) continue;
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const d = Math.hypot(dx, dy);
+        if (d > CFG.linkBreak) continue;
+        let alpha = (1 - d / CFG.linkBreak) * CFG.linkAlpha * linkBoost * assembleT;
+        alpha *= 1 + (a.energy + b.energy) * 2.4;
+        if (alpha < 0.015) continue;
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = `rgba(${L[2] === 0 ? text : accent},${Math.min(alpha, 0.5).toFixed(3)})`;
+        ctx.stroke();
+      }
+    }
+
+    // ── Puntos ──
+    for (const p of particles) {
+      const tw = 0.78 + 0.22 * Math.sin(t * 1.7 + p.phase);
+      // Onda de brillo que recorre el logo de izq. a der.
+      const wRaw = Math.sin(p.tx * 0.018 - t * 1.5);
+      const wave = wRaw > 0 ? wRaw * wRaw * wRaw * 0.5 * assembleT : 0;
+      const lit  = triggered && (now - triggerAt) >= p.delay ? 1 : 0.4;
+      const alpha = Math.min(p.baseA * tw * dotBoost * lit + wave + p.energy * 0.4, 0.95);
+      const r = p.r * (1 + p.energy * 0.9) + wave;
+      const rgb = p.letter === 0 ? text : accent;
+
+      // Halo en partículas energizadas por el cursor
+      if (p.energy > 0.2) {
+        const hr = r * 5;
+        const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, hr);
+        halo.addColorStop(0, `rgba(${accent},${(p.energy * 0.22).toFixed(3)})`);
+        halo.addColorStop(1, `rgba(${accent},0)`);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, hr, 0, Math.PI * 2);
+        ctx.fillStyle = halo;
+        ctx.fill();
+      }
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${rgb},${alpha.toFixed(3)})`;
+      ctx.fill();
+    }
+  }
+
+  let saResizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(saResizeTimer);
+    saResizeTimer = setTimeout(() => { if (resizeCanvas()) buildParticles(); }, 150);
+  });
+
+  function setup() {
+    if (!resizeCanvas()) { setTimeout(setup, 150); return; }
+    buildParticles();
+    if (reduceMotion) {
+      // Sin animación de entrada: el logo aparece ya formado
+      triggered = true;
+      triggerAt = performance.now() - 99999;
+      particles.forEach(p => { p.x = p.tx; p.y = p.ty; p.kicked = true; });
+    }
+    window._drawSACloud = drawSACloud;
+  }
+
+  // Esperar la fuente Syne 800 antes de muestrear el logo
+  if (document.fonts && document.fonts.ready) {
+    Promise.all([
+      document.fonts.load("800 100px 'Syne'"),
+      document.fonts.ready,
+    ]).then(setup, setup);
+  } else {
+    setup();
+  }
+})();
+
 // ─── MAIN LOOP ────────────────────────────────────────────────
 function loop(time) {
   lenisRaf(time);
@@ -1266,6 +1582,7 @@ function loop(time) {
   updateProgress();
   updateGridCells();
   if (window._drawNeural) window._drawNeural();
+  if (window._drawSACloud) window._drawSACloud();
   requestAnimationFrame(loop);
 }
 loop();
