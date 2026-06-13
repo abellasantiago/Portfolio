@@ -1321,8 +1321,10 @@ document.querySelectorAll('.contact-item').forEach(el => {
   const VS_HEAD = `
     uniform vec2 uCursor; uniform float uAspect; uniform float uReactR;
     varying float vDepth; varying float vProx;
+    varying vec3 vViewPos;
     void setupDepthProx(vec4 mv, vec4 cl) {
       vDepth = -mv.z;
+      vViewPos = mv.xyz;                              // view-space, para Fresnel via derivadas
       vec2 ndc = cl.xy / cl.w;
       vec2 d = (ndc - uCursor) * vec2(uAspect, 1.0);
       vProx = clamp(1.0 - length(d) / uReactR, 0.0, 1.0);
@@ -1348,15 +1350,31 @@ document.querySelectorAll('.contact-item').forEach(el => {
     uniform vec3 uColor;
     uniform vec3 uFlash;
     uniform float uOp;
+    uniform float uFresPow;
+    uniform float uFres;
     varying float vA;
+    varying vec3 vViewPos;
     ${FS_HEAD}
     void main() {
       float f = depthF();
       float depthA = mix(1.15, 0.32, f);             // frente opaco, fondo retrocede
       vec3 col = uColor * mix(1.0, 0.45, f);
+
+      // ── Fresnel rim ──────────────────────────────────────────
+      // Normal plana de la cara reconstruida con derivadas del
+      // view-pos (flat shading). En ángulos rasantes — la silueta
+      // del blob — el término se enciende: un halo de energía lima
+      // que crece con la curvatura. Cada shard que vuela conserva
+      // su propio rim al tumbar.
+      vec3 N  = normalize(cross(dFdx(vViewPos), dFdy(vViewPos)));
+      vec3 Vd = normalize(-vViewPos);
+      float fres = pow(1.0 - abs(dot(N, Vd)), uFresPow) * uFres * mix(1.0, 0.5, f);
+      col = mix(col, uColor * 1.9, clamp(fres, 0.0, 1.0));   // borde → lima brillante
+      col += uColor * fres * 0.3;                            // bloom aditivo sutil
+
       float react = vProx * vProx * uReactStr * mix(1.0, 0.45, f);
       col = mix(col, uFlash, react * 0.5);
-      gl_FragColor = vec4(col, vA * uOp * depthA + react * 0.08);
+      gl_FragColor = vec4(col, vA * uOp * depthA + react * 0.08 + fres * 0.42 * uOp);
     }`;
   const VSH_LINE = `
     attribute float aA;
@@ -1421,9 +1439,11 @@ document.querySelectorAll('.contact-item').forEach(el => {
 
   const fillMat = new THREE.ShaderMaterial({
     vertexShader: VSH_FLAT, fragmentShader: FSH_FLAT,
-    uniforms: { uColor, uFlash, uOp: { value: 1 }, uNear, uFar, uReactStr, uCursor, uAspect, uReactR },
+    uniforms: { uColor, uFlash, uOp: { value: 1 }, uNear, uFar, uReactStr, uCursor, uAspect, uReactR,
+                uFresPow: { value: 2.6 }, uFres: { value: 1 } },
     transparent: true, depthWrite: false, depthTest: false, side: THREE.DoubleSide,
   });
+  fillMat.extensions.derivatives = true; // GL_OES_standard_derivatives (dFdx/dFdy) — r128/WebGL1
   const lineMat = new THREE.ShaderMaterial({
     vertexShader: VSH_LINE, fragmentShader: FSH_LINE,
     uniforms: { uColor, uFlash, uOp: { value: 1 }, uNear, uFar, uReactStr, uCursor, uAspect, uReactR },
@@ -1573,6 +1593,11 @@ document.querySelectorAll('.contact-item').forEach(el => {
     fillMat.uniforms.uOp.value = (isLight ? 1.6  : 1) * globalFade;
     lineMat.uniforms.uOp.value = (isLight ? 1.25 : 1) * globalFade;
     ptsMat.uniforms.uOp.value  = (isLight ? 1.2  : 1) * globalFade;
+
+    // Fresnel: pulso lento (energía que respira) + se atenúa al desarmarse,
+    // dejando solo un eco de rim en cada shard. En claro va más suave.
+    const fresPulse = 0.8 + 0.2 * Math.sin(t3d * 1.7);
+    fillMat.uniforms.uFres.value = (isLight ? 0.6 : 1.0) * fresPulse * globalFade * (1 - p * 0.4);
 
     // Rotación integrada — se calma conforme el sólido se desarma,
     // así las piezas vuelan estables (y sigue siendo reversible)
