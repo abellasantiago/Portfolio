@@ -66,6 +66,7 @@ neural-canvas (z:0) → floaters (z:0) → page content (z:2+)
 - **Neural canvas** — red de partículas interactiva; atracción/repulsión con el cursor, estados de energía por nodo
 - **Custom cursor** — dot dibujado en el canvas neural (no DOM); halo difuso vía `#cursor-overlay`
 - **Icosaedro 3D** (Three.js) — sólido facetado que late en el hero y se deconstruye al scrollear; scrubbed y 100% reversible
+- **Fresnel rim glow** — las caras del icosaedro se encienden con el acento en ángulos rasantes (silueta); normal plana via derivadas (`dFdx`/`dFdy`), pulso lento que "respira" y se atenúa al deconstruir; cada shard que vuela conserva su rim
 - **SA Point Cloud** — logo "SA" formado por partículas que convergen en espiral al entrar en viewport; repulsión de cursor; malla tipo constelación
 - **Floaters** — círculos y cruces decorativos con parallax suave
 - **Parallax hero** — h1, subtítulo, foto y CTA tienen velocidades distintas
@@ -169,6 +170,8 @@ function loop(time) {
 **No usar**: `THREE.OrbitControls`, `THREE.CapsuleGeometry` (son r142+).  
 Usar en su lugar: `CylinderGeometry`, `SphereGeometry`, geometrías custom.
 
+**Derivadas en ShaderMaterial (WebGL1)**: `dFdx`/`dFdy` necesitan la extensión `GL_OES_standard_derivatives`. En r128 se habilita con `mat.extensions.derivatives = true` — Three.js inyecta el `#extension` solo. Lo usa el Fresnel del icosaedro para reconstruir la normal plana de cada cara sin buffer de normales (la geometría se reescribe cada frame en la deconstrucción, así que una normal por derivadas es siempre correcta).
+
 ### Campo de oclusión neural ↔ icosaedro
 `window._icoField` es el canal de comunicación entre el hero 3D y el canvas neural:
 ```js
@@ -228,3 +231,15 @@ Bruno Simon · Lusion · Aristide Benoist · Active Theory · Codrops · GSAP Sh
 - Posible: scroll-triggered text scramble en headings de sección
 - Posible: extender comportamiento magnético a los links del navbar
 - Completar o refinar el texto decorativo "SA" grande en el hero background
+
+---
+
+## Historial de cambios
+
+### 2026-06-13 — feat: Fresnel rim glow en el icosaedro del hero
+- Shader Fresnel en `fillMat` (caras del icosaedro): normal plana reconstruida con `dFdx`/`dFdy` del view-pos; brilla con el acento en ángulos rasantes → halo de energía en la silueta
+- Pulso lento (`0.8 + 0.2·sin`) para que el rim "respire"; se atenúa al deconstruir (`1 - p·0.4`) y cada shard que vuela conserva su rim
+- Extensión `GL_OES_standard_derivatives` habilitada vía `fillMat.extensions.derivatives = true` (r128/WebGL1)
+- Modo claro con intensidad más baja (0.6 vs 1.0) para que el violeta lea como borde nítido sin lavarse
+- Solo `script.js` (`VS_HEAD`, `FSH_FLAT`, `fillMat`, `tick3d`)
+- Rama mergeada: `claude/happy-bouman-ccf8a0` → `main`
