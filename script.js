@@ -51,6 +51,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 const map = (v, inMin, inMax, outMin, outMax) =>
   ((v - inMin) / (inMax - inMin)) * (outMax - outMin) + outMin;
+const smoothstep = (a, b, x) => { x = clamp((x - a) / (b - a), 0, 1); return x * x * (3 - 2 * x); };
 
 // ─── STATE ───────────────────────────────────────────────────
 let scrollY = 0;
@@ -394,7 +395,7 @@ if (!isMobile && !reduceMotionMotor) {
   });
   document.querySelectorAll('#sobre-mi .sm-body, #experiencia .item, #educacion .item')
     .forEach(el => leanEls.push(el));
-  leanEls.forEach(el => { el.style.willChange = 'transform'; });
+  leanEls.forEach(el => { el.style.willChange = 'transform, filter'; });
 
   // Aberración: headings (texto con masa suficiente para que el split se lea)
   document.querySelectorAll('section:not(#hero) h2, .item h3, .project-card:not(.project-card--placeholder) .project-title')
@@ -407,12 +408,39 @@ function applyScrollLean() {
   if (!leanEls.length) return;
   const sk = -scrollMotor.signed * MAX_SKEW;      // el bloque "queda atrás" en la dirección del recorrido
   if (Math.abs(sk) < 0.012) {
-    if (leanActive) { leanActive = false; for (const el of leanEls) el.style.transform = ''; }
+    if (leanActive) { leanActive = false; for (const el of leanEls) el.style.setProperty('--lean', '0deg'); }
     return;
   }
   leanActive = true;
-  const t = `skewY(${sk.toFixed(3)}deg)`;
-  for (const el of leanEls) el.style.transform = t;
+  const v = `${sk.toFixed(3)}deg`;
+  // Escribe SU variable; el transform compuesto vive en CSS (así no pisa el --fs del focus).
+  for (const el of leanEls) el.style.setProperty('--lean', v);
+}
+
+// ─── FOCUS RACK — profundidad de campo por posición en viewport ──
+// El contenido fuera del centro del viewport se desenfoca y achica apenas
+// (DOF cinematográfico). Reusa los mismos bloques que el lean y compone con
+// él vía variables CSS (--fs escala, --fb blur). Zona central nítida para no
+// tocar la legibilidad de lo que estás mirando. Off en mobile/reduced-motion.
+const FOCUS_DEAD = 0.34;   // fracción de media pantalla que queda nítida
+const MAX_FB     = 1.4;    // px de blur a los bordes
+const MAX_FSC    = 0.04;   // achicado máximo (4%)
+function updateFocus() {
+  if (isMobile || reduceMotionMotor || !leanEls.length) return;
+  const halfH = window.innerHeight / 2;
+  for (const el of leanEls) {
+    const r = el.getBoundingClientRect();
+    if (r.bottom < -160 || r.top > window.innerHeight + 160) {
+      if (el._fb !== 0) { el.style.setProperty('--fb', '0px'); el.style.setProperty('--fs', '1'); el._fb = 0; el._fs = 1; }
+      continue;
+    }
+    const dist = clamp(Math.abs((r.top + r.height / 2) - halfH) / halfH, 0, 1);
+    const f  = smoothstep(FOCUS_DEAD, 1, dist);
+    const fb = Math.round(f * MAX_FB * 10) / 10;
+    const fs = +(1 - f * MAX_FSC).toFixed(3);
+    if (fb !== el._fb) { el.style.setProperty('--fb', fb + 'px'); el._fb = fb; }
+    if (fs !== el._fs) { el.style.setProperty('--fs', fs); el._fs = fs; }
+  }
 }
 
 function applyChromaticAberration() {
@@ -2206,6 +2234,7 @@ function loop(time) {
   parallaxHero();
   parallaxSections();
   applyScrollLean();
+  updateFocus();
   applyChromaticAberration();
   animateFloaters();
   animateTicker();

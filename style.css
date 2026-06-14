@@ -1138,3 +1138,19 @@ footer {
   #sa-cloud { margin: -20px auto -28px; padding: 0 24px; justify-content: center; }
   #sa-cloud-canvas { width: min(420px, 100%); }
 }
+
+/* ─── FOCUS RACK + LEAN (composición vía variables) ───────────
+   Profundidad de campo en scroll: cada bloque se desenfoca/achica según
+   su distancia al centro del viewport. Compone con el lean: el lean escribe
+   --lean (skewY) y el focus --fs (escala) / --fb (blur), sin pisarse.
+   Solo desktop: en mobile las variables quedan sin setear → identidad. */
+@media (min-width: 701px) {
+  .section-header,
+  #sobre-mi .sm-body,
+  #experiencia .item,
+  #educacion .item {
+    transform: skewY(var(--lean, 0deg)) scale(var(--fs, 1));
+    transform-origin: left center;
+    filter: blur(var(--fb, 0px));
+  }
+}
