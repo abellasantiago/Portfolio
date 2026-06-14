@@ -264,15 +264,19 @@ body.cursor-over-nav.cursor-click #cursor-overlay { width: 14px; height: 14px; o
   align-items: center;
   justify-content: space-between;
   padding: 0 40px;
-  background: rgba(3,3,3,0.7);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  /* SOLO en el tope (hero) el navbar deja ver las partículas del fondo y su
+     reacción al cursor: ahí detrás hay hero vacío + partículas, nunca contenido
+     de secciones. Va transparente con poco blur (0.28 / blur 4px) para que el
+     sombreado se note — en la franja fina caen pocas partículas y hay que
+     amplificarlas. Al scrollear pasa a opaco (.scrolled) para que el contenido
+     que cruza por debajo NO se asome nunca. */
+  background: rgba(var(--bg-rgb), 0.28);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   border-bottom: 1px solid transparent;
   z-index: 1000;
-  transition: border-color 0.3s, background 0.5s;
+  transition: border-color 0.3s, background 0.5s, backdrop-filter 0.5s;
 }
-
-body.claro #navbar { background: rgba(250, 249, 247, 0.88); }
 
 /* Grain más visible en modo claro para dar textura */
 body.claro::after { opacity: 0.45; }
@@ -324,7 +328,14 @@ body.claro #hero::before {
   -webkit-text-stroke-color: rgba(0,0,0,0.07);
 }
 
-#navbar.scrolled { border-bottom-color: var(--border); }
+/* Scrolleado: opaco + blur fuerte (como antes) para que el contenido de las
+   secciones que pasa por debajo NO se vea nunca por detrás del navbar. */
+#navbar.scrolled {
+  border-bottom-color: var(--border);
+  background: rgba(var(--bg-rgb), 0.72);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+}
 
 .nav-logo {
   font-size: 26px; font-weight: 800;
@@ -808,13 +819,16 @@ footer {
 
 
 /* ─── PROYECTOS ───────────────────────────────────────────── */
+/* Sin perspective: un ancestro con perspective/3D convierte la grid en
+   "backdrop root" y el backdrop-filter de las cards deja de muestrear el
+   canvas neural (fixed) → no se verían las partículas detrás. Las skills
+   no tienen perspective y por eso sí las dejan ver; igualamos el patrón. */
 .project-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1px;
   background: rgba(15,15,15,0.45);
   border: 1px solid rgba(15,15,15,0.45);
-  perspective: 1000px;
 }
 
 .project-card {
@@ -830,7 +844,6 @@ footer {
   overflow: hidden;
   transition: background 0.3s, box-shadow 0.6s var(--ease);
   will-change: transform, opacity;
-  transform-style: preserve-3d;
   isolation: isolate;
 }
 
@@ -1049,7 +1062,7 @@ footer {
 
 #sa-cloud-canvas {
   display: block;
-  width: min(640px, 100%);
+  width: min(760px, 100%);
   height: auto;
   aspect-ratio: 8 / 5;
 }
@@ -1136,7 +1149,7 @@ footer {
 
   /* SA point cloud — centrado y compacto en mobile */
   #sa-cloud { margin: -20px auto -28px; padding: 0 24px; justify-content: center; }
-  #sa-cloud-canvas { width: min(420px, 100%); }
+  #sa-cloud-canvas { width: min(500px, 100%); }
 }
 
 /* ─── FOCUS RACK + LEAN (composición vía variables) ───────────

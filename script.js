@@ -1923,7 +1923,7 @@ document.querySelectorAll('.contact-item').forEach(el => {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const CFG = {
-    densityArea:  330,   // px² por partícula (menor = más denso)
+    densityArea:  460,   // px² por partícula (subido con el canvas → misma densidad del logo)
     minCount:     280,
     maxCount:     950,
     springK:      0.032, // resorte hacia el target
@@ -1942,6 +1942,7 @@ document.querySelectorAll('.contact-item').forEach(el => {
   let W = 0, H = 0;
   let particles = [];
   let links = [];
+  let saBBox = null;       // bounding box de los targets — zona "letras" (fade de bordes)
   let triggered = false;
   let triggerAt = 0;
 
@@ -1973,12 +1974,15 @@ document.querySelectorAll('.contact-item').forEach(el => {
     off.width = W; off.height = H;
     const o = off.getContext('2d', { willReadFrequently: true });
 
-    let size = H * 0.94;
+    // El logo se muestrea al 0.78 del canvas (no al 0.94): el canvas es más
+    // grande que el logo a propósito, dejando ~20% de margen alrededor para que
+    // los puntos repelidos/derivados nunca se escapen de la capa.
+    let size = H * 0.78;
     const setFont = s => { o.font = `800 ${s}px 'Syne', sans-serif`; };
     setFont(size);
     let tracking = size * 0.02;
     let m = o.measureText('SA');
-    const maxW = W * 0.94;
+    const maxW = W * 0.78;
     if (m.width + tracking > maxW) {
       size *= maxW / (m.width + tracking);
       tracking = size * 0.02;
@@ -2044,6 +2048,19 @@ document.querySelectorAll('.contact-item').forEach(el => {
       p.delay = (pt.x / W) * 650 + Math.random() * 480;
       return p;
     });
+
+    // Bounding box de los targets: define la zona "letras". Las partículas que
+    // escapan de aquí hacia el borde del canvas se desvanecen (ver _ef en draw),
+    // así el límite de la capa no se ve nunca y las letras quedan intactas.
+    let bxMin = Infinity, bxMax = -Infinity, byMin = Infinity, byMax = -Infinity;
+    for (const p of particles) {
+      if (p.tx < bxMin) bxMin = p.tx;
+      if (p.tx > bxMax) bxMax = p.tx;
+      if (p.ty < byMin) byMin = p.ty;
+      if (p.ty > byMax) byMax = p.ty;
+    }
+    saBBox = { minX: bxMin, maxX: bxMax, minY: byMin, maxY: byMax };
+
     buildLinks();
   }
 
@@ -2144,6 +2161,16 @@ document.querySelectorAll('.contact-item').forEach(el => {
       p.vy *= CFG.damping;
       p.x += p.vx;
       p.y += p.vy;
+
+      // Fade de bordes: 1 dentro del bbox del logo, → 0 al acercarse al borde
+      // del canvas. Suaviza el corte de las partículas que se escapan de la capa
+      // (deriva / repulsión del cursor) sin tocar nunca las letras (bbox interior).
+      p._ef = saBBox
+        ? smoothstep(0, Math.max(saBBox.minX, 1), p.x) *
+          smoothstep(W, Math.min(saBBox.maxX, W - 1), p.x) *
+          smoothstep(0, Math.max(saBBox.minY, 1), p.y) *
+          smoothstep(H, Math.min(saBBox.maxY, H - 1), p.y)
+        : 1;
     }
 
     // ── Malla (se enciende al terminar de converger) ──
@@ -2159,6 +2186,7 @@ document.querySelectorAll('.contact-item').forEach(el => {
         if (d > CFG.linkBreak) continue;
         let alpha = (1 - d / CFG.linkBreak) * CFG.linkAlpha * linkBoost * assembleT;
         alpha *= 1 + (a.energy + b.energy) * 2.4;
+        alpha *= Math.min(a._ef, b._ef);   // se desvanece con sus nodos en el borde
         if (alpha < 0.015) continue;
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
@@ -2170,12 +2198,13 @@ document.querySelectorAll('.contact-item').forEach(el => {
 
     // ── Puntos ──
     for (const p of particles) {
+      if (p._ef <= 0.001) continue;     // totalmente desvanecida en el borde
       const tw = 0.78 + 0.22 * Math.sin(t * 1.7 + p.phase);
       // Onda de brillo que recorre el logo de izq. a der.
       const wRaw = Math.sin(p.tx * 0.018 - t * 1.5);
       const wave = wRaw > 0 ? wRaw * wRaw * wRaw * 0.5 * assembleT : 0;
       const lit  = triggered && (now - triggerAt) >= p.delay ? 1 : 0.4;
-      const alpha = Math.min(p.baseA * tw * dotBoost * lit + wave + p.energy * 0.4, 0.95);
+      const alpha = Math.min(p.baseA * tw * dotBoost * lit + wave + p.energy * 0.4, 0.95) * p._ef;
       const r = p.r * (1 + p.energy * 0.9) + wave;
       const rgb = p.letter === 0 ? text : accent;
 
@@ -2183,7 +2212,7 @@ document.querySelectorAll('.contact-item').forEach(el => {
       if (p.energy > 0.2) {
         const hr = r * 5;
         const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, hr);
-        halo.addColorStop(0, `rgba(${accent},${(p.energy * 0.22).toFixed(3)})`);
+        halo.addColorStop(0, `rgba(${accent},${(p.energy * 0.22 * p._ef).toFixed(3)})`);
         halo.addColorStop(1, `rgba(${accent},0)`);
         ctx.beginPath();
         ctx.arc(p.x, p.y, hr, 0, Math.PI * 2);
