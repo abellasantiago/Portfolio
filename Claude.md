@@ -67,7 +67,8 @@ neural-canvas (z:0) → floaters (z:0) → page content (z:2+)
 - **Custom cursor** — dot dibujado en el canvas neural (no DOM); halo difuso vía `#cursor-overlay`
 - **Icosaedro 3D** (Three.js) — sólido facetado que late en el hero y se deconstruye al scrollear; scrubbed y 100% reversible
 - **Fresnel rim glow** — las caras del icosaedro se encienden con el acento en ángulos rasantes (silueta); normal plana via derivadas (`dFdx`/`dFdy`), pulso lento que "respira" y se atenúa al deconstruir; cada shard que vuela conserva su rim
-- **SA Point Cloud** — logo "SA" formado por partículas que convergen en espiral al entrar en viewport; repulsión de cursor; malla tipo constelación
+- **SA Point Cloud** — logo "SA" formado por partículas que convergen en espiral al entrar en viewport; repulsión de cursor; malla tipo constelación. Fade de bordes vía el bbox del logo + canvas con margen (logo al 0.78) → los puntos nunca se cortan contra el límite de la capa
+- **Partículas de fondo translúcidas** — el navbar (en el tope) y los cuadros de habilidades/proyectos dejan ver el canvas neural por detrás (semitransparente + `backdrop-filter`). El navbar se vuelve opaco al scrollear para tapar el contenido; las project cards no deben tener `perspective`/`preserve-3d` en ancestros (rompen el `backdrop-filter`)
 - **Floaters** — círculos y cruces decorativos con parallax suave
 - **Parallax hero** — h1, subtítulo, foto y CTA tienen velocidades distintas
 - **Parallax secciones** — h2 de cada sección se mueve suavemente al scrollear
@@ -251,6 +252,14 @@ Bruno Simon · Lusion · Aristide Benoist · Active Theory · Codrops · GSAP Sh
 ---
 
 ## Historial de cambios
+
+### 2026-06-14 — feat: partículas de fondo en navbar/cards y SA cloud contenido
+- **SA Point Cloud sin borde**: fade de bordes por partícula (`p._ef`) calculado desde el bounding box real de los targets del logo (`saBBox`) → las partículas que se escapan (deriva / repulsión del cursor) se desvanecen suavemente hacia el borde del canvas; las letras (interior del bbox) quedan intactas. Aplica a puntos, halos y enlaces de la malla
+- **SA canvas con margen**: canvas más grande (`min(760px)` desktop, `min(500px)` mobile) y logo muestreado al `0.78` en vez de `0.94` → mismo tamaño visual del logo pero ~20% de margen alrededor, los puntos repelidos tienen lienzo de sobra. `densityArea` 330→460 para mantener la densidad del logo
+- **Partículas tras el navbar**: en el tope el navbar va translúcido (`rgba(var(--bg-rgb),0.28)` + `blur(4px)`, sin saturate) para dejar ver el canvas neural y su reacción al cursor. Al scrollear (`.scrolled`) vuelve a opaco (`0.72` + `blur(24px) saturate(180%)`) para que el contenido de las secciones no se asome nunca. El contenido solo cruza la franja del navbar ya en estado scrolled, así que nunca se ve difuminado por detrás
+- **Partículas tras project cards**: quitados `perspective` de `.project-grid` y `transform-style: preserve-3d` de `.project-card` — convertían la grid en *backdrop root* y el `backdrop-filter` dejaba de muestrear el canvas neural (fixed). Ahora las cards dejan ver las partículas igual que las skills
+- Solo `script.js` + `style.css`
+- Rama mergeada: `claude/serene-hypatia-ae4ed5` → `main` (fast-forward)
 
 ### 2026-06-14 — feat: profundidad de campo en scroll (focus rack)
 - **Focus rack**: `updateFocus()` → DOF cinematográfico. Cada bloque se desenfoca (`blur`) y achica (`scale`) según su distancia al centro del viewport; zona central nítida (`FOCUS_DEAD=0.34`) para no tocar la legibilidad de lo que estás mirando. Aplica a `.section-header`, `#sobre-mi .sm-body` y los `.item` de Experiencia/Educación
