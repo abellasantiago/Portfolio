@@ -252,6 +252,14 @@ Bruno Simon · Lusion · Aristide Benoist · Active Theory · Codrops · GSAP Sh
 
 ## Historial de cambios
 
+### 2026-06-14 — feat: profundidad de campo en scroll (focus rack)
+- **Focus rack**: `updateFocus()` → DOF cinematográfico. Cada bloque se desenfoca (`blur`) y achica (`scale`) según su distancia al centro del viewport; zona central nítida (`FOCUS_DEAD=0.34`) para no tocar la legibilidad de lo que estás mirando. Aplica a `.section-header`, `#sobre-mi .sm-body` y los `.item` de Experiencia/Educación
+- **Composición lean ↔ focus vía variables CSS**: `applyScrollLean()` ahora escribe `--lean` (skewY) en vez de pisar el `transform` inline; `updateFocus()` escribe `--fs` (escala) y `--fb` (blur). Una sola regla CSS (`@media min-width:701px`) compone `skewY(var(--lean)) scale(var(--fs))` + `filter: blur(var(--fb))` → ambos efectos conviven sin pisarse. El lean se comporta idéntico que antes
+- Magnitudes de "feel": `FOCUS_DEAD` (zona nítida), `MAX_FB=1.4px` (blur máx), `MAX_FSC=0.04` (achicado máx, 4%). Escritura solo-en-cambio + blur cuantizado (0.1px) para no re-rasterizar cada frame
+- Gateado por `!isMobile && !reduceMotionMotor` (en mobile las variables quedan sin setear → identidad). Solo `script.js` + `style.css`
+- Nota: en esta sesión se exploraron también volumen 3D de fondo, card stack pinned y circuito de scroll SVG; se descartaron y revirtieron — quedó solo el focus rack
+- Rama mergeada: `claude/distracted-matsumoto-954975` → `main` (fast-forward)
+
 ### 2026-06-14 — feat: velocidad de scroll como motor global
 - `scrollMotor` (`window._scrollMotor`): señal compartida `{ raw, norm, signed }` desde el `velocity` de Lenis; `updateScrollMotor()` la suaviza (attack 0.25 / release 0.08) y la decae a 0 al frenar. `VEL_REF=55` px/frame ≈ scroll rápido
 - **Inercia neural**: momentum vertical en `Particle.update` (`vy += signed·0.32`), techo de velocidad dinámico (`×(1+norm·3.2)`), smear vertical por nodo en `Particle.draw` y boost/estiramiento de la malla en `drawNeural`
