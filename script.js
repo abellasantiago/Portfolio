@@ -57,6 +57,28 @@ let scrollY = 0;
 let targetScrollY = 0;
 let raf;
 const isMobile = window.innerWidth < 700;
+const reduceMotionMotor = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ─── SCROLL VELOCITY — MOTOR GLOBAL ───────────────────────────
+// Lenis expone la velocidad en cada evento de scroll. La suavizamos y
+// normalizamos a una señal compartida que alimenta varios sistemas:
+// inercia del campo neural, lean de secciones y aberración cromática.
+// El sitio entero "siente" el ritmo del recorrido, no solo el cursor.
+// Decae a 0 al frenar → todos los efectos vuelven a reposo, scrubbed.
+const scrollMotor = { raw: 0, norm: 0, signed: 0 };
+window._scrollMotor = scrollMotor;
+const VEL_REF = 55;            // px/frame que cuenta como "scroll rápido" (→ ~1.0)
+
+function updateScrollMotor() {
+  if (reduceMotionMotor) return;               // respeta prefers-reduced-motion
+  scrollMotor.raw *= 0.86;                      // decae si no llegan eventos (al frenar)
+  if (Math.abs(scrollMotor.raw) < 0.02) scrollMotor.raw = 0;
+  const n = clamp(Math.abs(scrollMotor.raw) / VEL_REF, 0, 1);
+  const s = clamp(scrollMotor.raw / VEL_REF, -1, 1);
+  // Attack/release distintos: engancha rápido, suelta suave
+  scrollMotor.norm   += (n - scrollMotor.norm)   * (n > scrollMotor.norm ? 0.25 : 0.08);
+  scrollMotor.signed += (s - scrollMotor.signed) * (Math.abs(s) > Math.abs(scrollMotor.signed) ? 0.25 : 0.08);
+}
 
 // ─── LENIS SMOOTH SCROLL ──────────────────────────────────────
 const lenis = new Lenis({
@@ -68,8 +90,9 @@ const lenis = new Lenis({
 window.lenis = lenis;
 
 // Lenis alimenta scrollY para que parallax y progress funcionen en sync
-lenis.on('scroll', ({ scroll }) => {
+lenis.on('scroll', ({ scroll, velocity }) => {
   scrollY = scroll;
+  scrollMotor.raw = velocity;
   document.getElementById('navbar').classList.toggle('scrolled', scroll > 50);
 });
 
@@ -349,6 +372,61 @@ function parallaxSections() {
       h2.style.transform = `translateY(${centerOffset * depth * 0.4}px)`;
     }
   });
+}
+
+// ─── SCROLL-INERTIA LEAN + ABERRACIÓN CROMÁTICA ──────────────
+// La velocidad de scroll inclina sutilmente los bloques de cada sección
+// (skewY — cizalla vertical, segura para el kerning: no toca el avance
+// horizontal de los glifos) y dispara un RGB-split en los headings.
+// Ambos son función pura de la velocidad y decaen a 0 al frenar.
+// Nunca tocan el h1 del hero ni el transform de reveal del <section>.
+const MAX_SKEW = 0.85;   // grados a velocidad máxima
+const MAX_CA   = 2.6;    // px de separación RGB a velocidad máxima
+
+const leanEls = [];
+const caEls   = [];
+if (!isMobile && !reduceMotionMotor) {
+  // Lean: header de cada sección + bloques de texto sin acople de medición
+  // (los grids quedan libres: su propia animación de ensamblado los maneja).
+  document.querySelectorAll('section:not(#hero)').forEach(sec => {
+    const head = sec.querySelector('.section-header');
+    if (head) leanEls.push(head);
+  });
+  document.querySelectorAll('#sobre-mi .sm-body, #experiencia .item, #educacion .item')
+    .forEach(el => leanEls.push(el));
+  leanEls.forEach(el => { el.style.willChange = 'transform'; });
+
+  // Aberración: headings (texto con masa suficiente para que el split se lea)
+  document.querySelectorAll('section:not(#hero) h2, .item h3, .project-card:not(.project-card--placeholder) .project-title')
+    .forEach(el => caEls.push(el));
+}
+
+let leanActive = false, caActive = false;
+
+function applyScrollLean() {
+  if (!leanEls.length) return;
+  const sk = -scrollMotor.signed * MAX_SKEW;      // el bloque "queda atrás" en la dirección del recorrido
+  if (Math.abs(sk) < 0.012) {
+    if (leanActive) { leanActive = false; for (const el of leanEls) el.style.transform = ''; }
+    return;
+  }
+  leanActive = true;
+  const t = `skewY(${sk.toFixed(3)}deg)`;
+  for (const el of leanEls) el.style.transform = t;
+}
+
+function applyChromaticAberration() {
+  if (!caEls.length) return;
+  const amt = scrollMotor.norm;
+  if (amt < 0.025) {
+    if (caActive) { caActive = false; for (const el of caEls) el.style.textShadow = ''; }
+    return;
+  }
+  caActive = true;
+  const dx = amt * MAX_CA;
+  const a  = clamp(amt * 0.95, 0, 0.8);
+  const sh = `${dx.toFixed(2)}px 0 rgba(255,59,59,${a.toFixed(3)}), ${(-dx).toFixed(2)}px 0 rgba(0,229,255,${a.toFixed(3)})`;
+  for (const el of caEls) el.style.textShadow = sh;
 }
 
 // ─── CURSOR GLOW — variables (el aura difusa, usada también por el cursor custom) ─
@@ -770,6 +848,11 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
         }
       }
 
+      // Inercia de scroll: momentum vertical en la dirección del recorrido.
+      // En scroll rápido las partículas fluyen como una corriente; el
+      // damping las reasienta al frenar (señal compartida → siente todo).
+      if (scrollMotor.norm > 0.001) this.vy += scrollMotor.signed * 0.32;
+
       // Vida propia — deriva sinusoidal única por partícula
       this.vx += Math.sin(this.phase * 0.6 + this.y * 0.004) * 0.003;
       this.vy += Math.cos(this.phase * 0.4 + this.x * 0.004) * 0.003;
@@ -778,7 +861,9 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
       this.vx *= 0.97;
       this.vy *= 0.97;
       const spd = Math.hypot(this.vx, this.vy);
-      const maxSpd = CFG.speed * 5;
+      // En scroll rápido subimos el techo de velocidad para que la
+      // corriente se note; vuelve al base al frenar.
+      const maxSpd = CFG.speed * 5 * (1 + scrollMotor.norm * 3.2);
       if (spd > maxSpd) { this.vx = (this.vx / spd) * maxSpd; this.vy = (this.vy / spd) * maxSpd; }
 
       this.x += this.vx;
@@ -792,7 +877,7 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
       if (this.y > H+20) this.y = -20;
     }
 
-    draw(rgb, boost, field) {
+    draw(rgb, boost, field, streakLen = 0) {
       // Si la partícula cae detrás del icosaedro: se atenúa y se refracta
       // (desplazamiento radial oscilante) → se nota que está "adentro/atrás".
       let x = this.x, y = this.y, occ = 0;
@@ -828,10 +913,22 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
         ctx.fill();
       }
 
-      ctx.beginPath();
-      ctx.arc(x, y, radius, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${rgb},${alpha})`;
-      ctx.fill();
+      // Smear vertical en scroll rápido: el nodo se estira en la
+      // dirección del recorrido (motion blur) y vuelve a punto al frenar.
+      if (streakLen > 1.2) {
+        ctx.strokeStyle = `rgba(${rgb},${alpha})`;
+        ctx.lineWidth = radius * 2;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(x, y - streakLen);
+        ctx.lineTo(x, y + streakLen);
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${rgb},${alpha})`;
+        ctx.fill();
+      }
     }
   }
 
@@ -849,6 +946,13 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
     // Lo exporta el hero 3D; null si está dormido o fuera del hero.
     const field   = window._icoField;
 
+    // Inercia de scroll: estira la malla y los nodos en la dirección del
+    // recorrido e intensifica las conexiones. Todo decae a 0 al frenar.
+    const vNorm        = scrollMotor.norm;
+    const streakL      = vNorm * 18;                 // px de smear vertical por nodo
+    const maxDist      = CFG.maxDist * (1 + vNorm * 0.22);
+    const velLineBoost = 1 + vNorm * 1.4;
+
     ctx.clearRect(0, 0, W, H);
 
     // Update partículas
@@ -861,14 +965,15 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
         const b = particles[j];
         const dx = a.x - b.x, dy = a.y - b.y;
         const dist = Math.hypot(dx, dy);
-        if (dist > CFG.maxDist) continue;
+        if (dist > maxDist) continue;
 
-        const t = 1 - dist / CFG.maxDist;
+        const t = 1 - dist / maxDist;
         let alpha = t * t * CFG.lineMaxAlpha * lBoost;
 
-        // Boost por energía de los nodos
+        // Boost por energía de los nodos + inercia de scroll (la malla se
+        // intensifica y estira en scroll rápido)
         const energyMult = 1 + (a.energy + b.energy) * 1.8;
-        alpha *= energyMult;
+        alpha *= energyMult * velLineBoost;
 
         // Boost cerca del mouse
         const midX = (a.x + b.x) / 2, midY = (a.y + b.y) / 2;
@@ -910,8 +1015,8 @@ document.querySelectorAll('.btn-primary, .btn-ghost').forEach(btn => {
       }
     }
 
-    // Dibujar nodos encima
-    particles.forEach(p => p.draw(rgb, boost, field));
+    // Dibujar nodos encima (con smear vertical si hay inercia de scroll)
+    particles.forEach(p => p.draw(rgb, boost, field, streakL));
 
     // Dot en el mouse — único cursor
     if (nmx > 0) {
@@ -2097,8 +2202,11 @@ document.querySelectorAll('.contact-item').forEach(el => {
 // ─── MAIN LOOP ────────────────────────────────────────────────
 function loop(time) {
   lenisRaf(time);
+  updateScrollMotor();
   parallaxHero();
   parallaxSections();
+  applyScrollLean();
+  applyChromaticAberration();
   animateFloaters();
   animateTicker();
   updateProgress();

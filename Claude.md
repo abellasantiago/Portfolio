@@ -84,6 +84,10 @@ neural-canvas (z:0) → floaters (z:0) → page content (z:2+)
 - **Dark/light toggle** — cambia variables CSS; en modo claro el cursor canvas pierde visibilidad y el `#cursor-overlay` lo suple
 - **Mobile hamburger** — menú desplegable con Lenis pause/resume
 - **Smooth scroll** — Lenis alimenta `scrollY` para que parallax y progress estén en sync
+- **Scroll velocity motor** — la velocidad de Lenis se normaliza a `scrollMotor` (señal compartida) que alimenta tres sistemas: inercia neural, lean de secciones y aberración cromática. Decae a 0 al frenar
+- **Inercia campo neural** — en scroll rápido las partículas reciben momentum vertical (corriente) y los nodos se estiran en smear vertical; la malla se intensifica. El fondo "siente" todo el recorrido, no solo el cursor
+- **Lean por inercia** — `skewY` mínimo (≤0.85°) en headers + bloques de texto, proporcional a la velocidad con signo; vuelve a 0 al frenar. Va en wrappers, nunca en el texto (skewY es cizalla vertical → no toca el kerning); el h1 del hero queda intacto
+- **Aberración cromática** — RGB-split (rojo `#ff3b3b` / cyan `#00e5ff`, misma paleta del glitch del logo) vía `text-shadow` en headings (h2/h3/project-title) en scroll rápido; decae al parar
 
 ### Guards mobile
 
@@ -91,7 +95,7 @@ Todo lo que requiere precisión de puntero o performance GPU está desactivado e
 
 ```
 neural canvas · floaters parallax · custom cursor · parallax hero/secciones
-icosaedro 3D · tilt 3D cards
+icosaedro 3D · tilt 3D cards · scroll motor (inercia/lean/aberración)
 ```
 
 En mobile las grid animations usan CSS keyframes alternativos.
@@ -179,6 +183,18 @@ window._icoField = { cx, cy, r, strength }
 ```
 El canvas neural lo lee para atenuar partículas y cursor que quedan "detrás" del sólido.
 
+### Scroll velocity motor
+`scrollMotor` (expuesto en `window._scrollMotor`) es la señal compartida de velocidad de scroll. Lenis la emite en su evento; `updateScrollMotor()` (primero en el loop) la suaviza y normaliza:
+```js
+const scrollMotor = { raw, norm, signed }; // norm 0..1, signed -1..1
+```
+- `raw` se setea desde `velocity` de Lenis y **decae solo** (`*0.86`) cuando no llegan eventos → al frenar todo vuelve a 0.
+- `norm`/`signed` usan **attack/release distintos** (engancha rápido 0.25, suelta suave 0.08).
+- Lectores: la inercia del campo neural (momentum + smear + boost de malla), `applyScrollLean()` y `applyChromaticAberration()`.
+- Gateado por `!isMobile && !reduceMotionMotor`; con reduced-motion `updateScrollMotor` retorna y el motor queda en 0 (todos los efectos se anulan solos).
+
+El **lean** va en wrappers (`.section-header`, `.sm-body`, `.item`) **nunca en el h2/h3** directamente: el texto conserva su propio `transform` (translateY de parallax) y el `skewY` del padre no rompe kerning. Los grids quedan sin skew para no acoplar con la medición de `updateGridCells()`.
+
 ---
 
 ## Principios de diseño
@@ -235,6 +251,14 @@ Bruno Simon · Lusion · Aristide Benoist · Active Theory · Codrops · GSAP Sh
 ---
 
 ## Historial de cambios
+
+### 2026-06-14 — feat: velocidad de scroll como motor global
+- `scrollMotor` (`window._scrollMotor`): señal compartida `{ raw, norm, signed }` desde el `velocity` de Lenis; `updateScrollMotor()` la suaviza (attack 0.25 / release 0.08) y la decae a 0 al frenar. `VEL_REF=55` px/frame ≈ scroll rápido
+- **Inercia neural**: momentum vertical en `Particle.update` (`vy += signed·0.32`), techo de velocidad dinámico (`×(1+norm·3.2)`), smear vertical por nodo en `Particle.draw` y boost/estiramiento de la malla en `drawNeural`
+- **Lean**: `applyScrollLean()` → `skewY` (≤0.85°, signo de la velocidad) en `.section-header`, `#sobre-mi .sm-body`, `.item`. Wrappers, nunca el texto → kerning intacto. Grids sin skew (no acoplar con `updateGridCells`)
+- **Aberración cromática**: `applyChromaticAberration()` → `text-shadow` RGB-split (rojo/cyan, ≤2.6px) en h2/h3/project-title; decae a `""` al parar
+- Gateado por `!isMobile && !reduceMotionMotor`. Magnitudes (`MAX_SKEW`, `MAX_CA`, `0.32`, `18`, `VEL_REF`) son los puntos de ajuste de "feel"
+- Solo `script.js`. Tooling: `.claude/launch.json` migrado de `python3` a `node` (Python no disponible en el entorno Windows)
 
 ### 2026-06-13 — feat: Fresnel rim glow en el icosaedro del hero
 - Shader Fresnel en `fillMat` (caras del icosaedro): normal plana reconstruida con `dFdx`/`dFdy` del view-pos; brilla con el acento en ángulos rasantes → halo de energía en la silueta
