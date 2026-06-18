@@ -321,37 +321,37 @@ function parallaxHero() {
   const heroH = hero.offsetHeight;
   const progress = clamp(sy / heroH, 0, 1);
 
-  // Nombre se aleja despacio
+  // Nombre se aleja: sube despacio y la "cámara" lo cruza (escala leve)
   const h1 = hero.querySelector('h1');
   if (h1) {
-    h1.style.transform = `translateY(${sy * 0.18}px)`;
+    h1.style.transform = `translateY(${sy * 0.24}px) scale(${(1 + progress * 0.06).toFixed(3)})`;
     h1.style.opacity = 1 - progress * 1.6;
   }
 
-  // Subtítulo se mueve un poco más rápido
+  // Subtítulo: capa más cercana → se mueve más rápido
   const sub = hero.querySelector('.hero-sub');
   if (sub) {
-    sub.style.transform = `translateY(${sy * 0.28}px)`;
+    sub.style.transform = `translateY(${sy * 0.42}px)`;
     sub.style.opacity = 1 - progress * 2;
   }
 
-  // Foto sube más lenta
+  // Foto: capa de fondo → sube lenta
   const foto = hero.querySelector('.foto-perfil');
   if (foto) {
-    foto.style.transform = `translateY(${sy * 0.1}px)`;
+    foto.style.transform = `translateY(${sy * 0.05}px)`;
   }
 
-  // Tag se mueve suave
+  // Tag
   const tag = hero.querySelector('.hero-tag');
   if (tag) {
-    tag.style.transform = `translateY(${sy * 0.22}px)`;
+    tag.style.transform = `translateY(${sy * 0.34}px)`;
     tag.style.opacity = 1 - progress * 2.2;
   }
 
-  // CTA desaparece rápido
+  // CTA: capa más cercana → desaparece rápido al cruzarla
   const cta = hero.querySelector('.hero-cta');
   if (cta) {
-    cta.style.transform = `translateY(${sy * 0.35}px)`;
+    cta.style.transform = `translateY(${sy * 0.52}px)`;
     cta.style.opacity = 1 - progress * 2.5;
   }
 
@@ -370,7 +370,8 @@ function parallaxSections() {
 
     const h2 = sec.querySelector('h2');
     if (h2) {
-      h2.style.transform = `translateY(${centerOffset * depth * 0.4}px)`;
+      // Capa interna: el título se separa del número (parallax dentro del header)
+      h2.style.transform = `translateY(${centerOffset * depth * 0.6}px)`;
     }
   });
 }
@@ -391,10 +392,10 @@ if (!isMobile && !reduceMotionMotor) {
   // (los grids quedan libres: su propia animación de ensamblado los maneja).
   document.querySelectorAll('section:not(#hero)').forEach(sec => {
     const head = sec.querySelector('.section-header');
-    if (head) leanEls.push(head);
+    if (head) { head._pdepth = 0.09; leanEls.push(head); }   // capa de fondo: parallax marcado
   });
   document.querySelectorAll('#sobre-mi .sm-body, #experiencia .item, #educacion .item')
-    .forEach(el => leanEls.push(el));
+    .forEach(el => { el._pdepth = 0.04; leanEls.push(el); }); // capa de contenido: parallax sutil
   leanEls.forEach(el => { el.style.willChange = 'transform, filter'; });
 
   // Aberración: headings (texto con masa suficiente para que el split se lea)
@@ -417,29 +418,48 @@ function applyScrollLean() {
   for (const el of leanEls) el.style.setProperty('--lean', v);
 }
 
-// ─── FOCUS RACK — profundidad de campo por posición en viewport ──
-// El contenido fuera del centro del viewport se desenfoca y achica apenas
-// (DOF cinematográfico). Reusa los mismos bloques que el lean y compone con
-// él vía variables CSS (--fs escala, --fb blur). Zona central nítida para no
-// tocar la legibilidad de lo que estás mirando. Off en mobile/reduced-motion.
-const FOCUS_DEAD = 0.34;   // fracción de media pantalla que queda nítida
-const MAX_FB     = 1.4;    // px de blur a los bordes
-const MAX_FSC    = 0.04;   // achicado máximo (4%)
+// ─── FOCUS RACK + CÁMARA DE SCROLL ───────────────────────────
+// Convierte el scroll en un travelling de cámara. Cada bloque, según su
+// posición/velocidad, recibe tres cosas que componen vía CSS vars:
+//   1) DOF: se desenfoca (--fb) y achica (--fs) cuanto más lejos del centro
+//      del viewport está → el foco "viaja" con vos. Centro nítido (FOCUS_DEAD)
+//      para no tocar la lectura de lo que estás mirando.
+//   2) Parallax por capa (--py): cada bloque tiene profundidad propia
+//      (head._pdepth fondo, contenido sutil) → al scrollear se separan en Z.
+//   3) Motion-blur global por velocidad: toda la página vuela borrosa en
+//      scroll rápido y ENFOCA de golpe al frenar (rack focus).
+// Función pura de posición + scrollMotor; decae a reposo. Off en mobile/RM.
+const FOCUS_DEAD = 0.30;   // fracción de media pantalla que queda nítida
+const MAX_FB     = 2.0;    // px de blur por posición (DOF en los bordes)
+const MAX_FSC    = 0.06;   // achicado máximo por posición (dolly, 6%)
+const MAX_VBLUR  = 1.3;    // px de motion-blur a velocidad máxima (enfoca al parar)
+const PY_MAX     = 72;     // tope del parallax por capa (px)
 function updateFocus() {
   if (isMobile || reduceMotionMotor || !leanEls.length) return;
-  const halfH = window.innerHeight / 2;
+  const vh     = window.innerHeight;
+  const halfH  = vh / 2;
+  const vBlur  = scrollMotor.norm * MAX_VBLUR;     // toda la página vuela borrosa; enfoca al frenar
+  const velAmp = 1 + scrollMotor.norm * 1.0;       // scroll rápido → capas más separadas (más profundidad)
   for (const el of leanEls) {
     const r = el.getBoundingClientRect();
-    if (r.bottom < -160 || r.top > window.innerHeight + 160) {
-      if (el._fb !== 0) { el.style.setProperty('--fb', '0px'); el.style.setProperty('--fs', '1'); el._fb = 0; el._fs = 1; }
+    if (r.bottom < -220 || r.top > vh + 220) {
+      if (el._fb !== 0 || el._py !== 0) {
+        el.style.setProperty('--fb', '0px');
+        el.style.setProperty('--fs', '1');
+        el.style.setProperty('--py', '0px');
+        el._fb = 0; el._fs = 1; el._py = 0;
+      }
       continue;
     }
-    const dist = clamp(Math.abs((r.top + r.height / 2) - halfH) / halfH, 0, 1);
+    const center = (r.top + r.height / 2) - halfH;          // <0 arriba del centro, >0 abajo
+    const dist = clamp(Math.abs(center) / halfH, 0, 1);
     const f  = smoothstep(FOCUS_DEAD, 1, dist);
-    const fb = Math.round(f * MAX_FB * 10) / 10;
-    const fs = +(1 - f * MAX_FSC).toFixed(3);
+    const fb = Math.round((f * MAX_FB + vBlur) * 10) / 10;   // DOF por posición + motion-blur por velocidad
+    const fs = +(1 - f * MAX_FSC).toFixed(3);                // dolly: achica lo lejano
+    const py = Math.round(clamp(center * (el._pdepth || 0) * velAmp, -PY_MAX, PY_MAX) * 2) / 2;
     if (fb !== el._fb) { el.style.setProperty('--fb', fb + 'px'); el._fb = fb; }
     if (fs !== el._fs) { el.style.setProperty('--fs', fs); el._fs = fs; }
+    if (py !== el._py) { el.style.setProperty('--py', py + 'px'); el._py = py; }
   }
 }
 

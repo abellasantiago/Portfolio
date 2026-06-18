@@ -780,8 +780,8 @@ footer {
 
 /* ─── SCROLL REVEAL ───────────────────────────────────────── */
 .oculto {
-  opacity: 0; transform: translateY(28px);
-  transition: opacity 0.75s var(--ease), transform 0.75s var(--ease);
+  opacity: 0; transform: translateY(56px);
+  transition: opacity 0.85s var(--ease), transform 0.85s var(--ease);
 }
 .visible { opacity: 1; transform: translateY(0); }
 
@@ -1162,7 +1162,7 @@ footer {
   #sobre-mi .sm-body,
   #experiencia .item,
   #educacion .item {
-    transform: skewY(var(--lean, 0deg)) scale(var(--fs, 1));
+    transform: translateY(var(--py, 0px)) skewY(var(--lean, 0deg)) scale(var(--fs, 1));
     transform-origin: left center;
     filter: blur(var(--fb, 0px));
   }
