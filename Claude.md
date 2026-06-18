@@ -70,8 +70,9 @@ neural-canvas (z:0) → floaters (z:0) → page content (z:2+)
 - **SA Point Cloud** — logo "SA" formado por partículas que convergen en espiral al entrar en viewport; repulsión de cursor; malla tipo constelación. Fade de bordes vía el bbox del logo + canvas con margen (logo al 0.78) → los puntos nunca se cortan contra el límite de la capa
 - **Partículas de fondo translúcidas** — el navbar (en el tope) y los cuadros de habilidades/proyectos dejan ver el canvas neural por detrás (semitransparente + `backdrop-filter`). El navbar se vuelve opaco al scrollear para tapar el contenido; las project cards no deben tener `perspective`/`preserve-3d` en ancestros (rompen el `backdrop-filter`)
 - **Floaters** — círculos y cruces decorativos con parallax suave
-- **Parallax hero** — h1, subtítulo, foto y CTA tienen velocidades distintas
+- **Parallax hero** — h1, subtítulo, foto y CTA tienen velocidades distintas (capas en Z); el h1 escala leve al cruzarlo
 - **Parallax secciones** — h2 de cada sección se mueve suavemente al scrollear
+- **Cámara de scroll** — el scroll es un travelling cinematográfico sobre el contenido existente (sin elementos nuevos): parallax por capa (`--py`; headers fondo `_pdepth 0.09`, texto/items cercano `0.04`), rack focus / DOF (`--fb`/`--fs`; centro nítido para la lectura) y **motion-blur global por velocidad** (`scrollMotor` → la página vuela borrosa en scroll rápido y enfoca de golpe al frenar). Todo en `updateFocus()`, compone con lean/aberración vía CSS vars, solo `translateY`+escala uniforme (kerning intacto)
 - **Scroll reveal** — secciones con clase `.oculto` entran con `IntersectionObserver`
 - **Grid assembly** — cells de skills/contacto/proyectos vuelan desde fuera del viewport con offsets caóticos (seeded random)
 - **Letter fly-in** — letras del h1 entran desde posiciones aleatorias al cargar
@@ -85,7 +86,7 @@ neural-canvas (z:0) → floaters (z:0) → page content (z:2+)
 - **Dark/light toggle** — cambia variables CSS; en modo claro el cursor canvas pierde visibilidad y el `#cursor-overlay` lo suple
 - **Mobile hamburger** — menú desplegable con Lenis pause/resume
 - **Smooth scroll** — Lenis alimenta `scrollY` para que parallax y progress estén en sync
-- **Scroll velocity motor** — la velocidad de Lenis se normaliza a `scrollMotor` (señal compartida) que alimenta tres sistemas: inercia neural, lean de secciones y aberración cromática. Decae a 0 al frenar
+- **Scroll velocity motor** — la velocidad de Lenis se normaliza a `scrollMotor` (señal compartida) que alimenta varios sistemas: inercia neural, lean de secciones, aberración cromática y la cámara de scroll (motion-blur global + amplitud del parallax por capa). Decae a 0 al frenar
 - **Inercia campo neural** — en scroll rápido las partículas reciben momentum vertical (corriente) y los nodos se estiran en smear vertical; la malla se intensifica. El fondo "siente" todo el recorrido, no solo el cursor
 - **Lean por inercia** — `skewY` mínimo (≤0.85°) en headers + bloques de texto, proporcional a la velocidad con signo; vuelve a 0 al frenar. Va en wrappers, nunca en el texto (skewY es cizalla vertical → no toca el kerning); el h1 del hero queda intacto
 - **Aberración cromática** — RGB-split (rojo `#ff3b3b` / cyan `#00e5ff`, misma paleta del glitch del logo) vía `text-shadow` en headings (h2/h3/project-title) en scroll rápido; decae al parar
@@ -96,7 +97,7 @@ Todo lo que requiere precisión de puntero o performance GPU está desactivado e
 
 ```
 neural canvas · floaters parallax · custom cursor · parallax hero/secciones
-icosaedro 3D · tilt 3D cards · scroll motor (inercia/lean/aberración)
+icosaedro 3D · tilt 3D cards · scroll motor (inercia/lean/aberración) · cámara de scroll (parallax/DOF/motion-blur)
 ```
 
 En mobile las grid animations usan CSS keyframes alternativos.
@@ -252,6 +253,17 @@ Bruno Simon · Lusion · Aristide Benoist · Active Theory · Codrops · GSAP Sh
 ---
 
 ## Historial de cambios
+
+### 2026-06-18 — feat: cámara de scroll (parallax por capas + rack focus + motion-blur)
+- **Cámara de scroll**: el scroll se convierte en un travelling cinematográfico sobre el contenido existente (cero elementos nuevos). Tres capas que componen vía CSS vars:
+  - **Parallax por profundidad** (`--py` en `updateFocus`): cada bloque tiene `_pdepth` propio — headers capa de fondo (`0.09`), texto/items capa cercana (`0.04`) — y se separan en Z al scrollear. `PY_MAX=72`, amplificado por velocidad (`velAmp = 1 + norm`). El h2 hace parallax interno extra (se separa del número)
+  - **Rack focus / DOF** profundizado: `MAX_FB=2.0` (blur por posición), `MAX_FSC=0.06` (dolly), `FOCUS_DEAD=0.30` (zona nítida central para no tocar la lectura)
+  - **Motion-blur global por velocidad** (`MAX_VBLUR=1.3`): toda la página vuela borrosa en scroll rápido (`scrollMotor.norm`) y **enfoca de golpe al frenar** (rack focus)
+- **Hero**: coeficientes de parallax más marcados (sub `0.42`, cta `0.52`, foto lenta `0.05`) + escala leve del h1 al cruzarlo; capas en Z más claras
+- **Entrada de secciones**: `.oculto` sube desde `56px` (antes `28px`) con transición `0.85s` → entrada más cinematográfica
+- Solo `translateY` + escala uniforme → kerning intacto. Compone con lean/aberración. Off en mobile/reduced-motion. Solo `script.js` + `style.css`
+- Nota: efecto desktop-only (`innerWidth ≥ 700`), no verificable en el preview headless
+- Rama mergeada: `claude/quizzical-davinci-bca969` → `main` (fast-forward)
 
 ### 2026-06-14 — feat: partículas de fondo en navbar/cards y SA cloud contenido
 - **SA Point Cloud sin borde**: fade de bordes por partícula (`p._ef`) calculado desde el bounding box real de los targets del logo (`saBBox`) → las partículas que se escapan (deriva / repulsión del cursor) se desvanecen suavemente hacia el borde del canvas; las letras (interior del bbox) quedan intactas. Aplica a puntos, halos y enlaces de la malla
