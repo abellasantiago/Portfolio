@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 904" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace">
+<rect width="1140" height="904" fill="#070707"/>
+<rect x="40" y="34" width="34" height="2" fill="#c8f135"/>
+<text x="84" y="40" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="13" letter-spacing="2" fill="#c8f135">MIDDLE EARTH ENCOUNTERS</text>
+<text x="84" y="60" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="11.5" fill="#8a8a8a">Arquitectura de clases · C# / .NET · OOP</text>
+<line x1="840" y1="38" x2="870" y2="38" stroke="rgba(200,241,53,0.32)" stroke-width="1.6"/>
+<text x="878" y="42" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="10.5" fill="#8a8a8a">hereda</text>
+<line x1="950" y1="38" x2="980" y2="38" stroke="#3f3f3f" stroke-width="1.6" stroke-dasharray="4 4"/>
+<text x="988" y="42" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="10.5" fill="#8a8a8a">implementa</text>
+<rect x="866" y="56" width="234" height="60" rx="7" fill="rgba(200,241,53,0.06)" stroke="#c8f135" stroke-width="1"/>
+<text x="983.0" y="72" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">motor de combate</text>
+<text x="983.0" y="93.2" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="13" fill="#c8f135">Encounter</text>
+<text x="983.0" y="107" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" fill="#8a8a8a">DoEncounter(heroes, enemies)</text>
+<text x="40" y="112" font-family="'Syne', system-ui, sans-serif" font-size="15" font-weight="700" letter-spacing="1" fill="#e8e8e8">Personajes</text>
+<rect x="350" y="128" width="180" height="50" rx="7" fill="#0a0a0a" stroke="#383838" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="440.0" y="146" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">interface</text>
+<text x="440.0" y="165" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="13" fill="#d8d8d8">ICharacter</text>
+<rect x="350" y="206" width="180" height="60" rx="7" fill="#0e0e0e" stroke="#2e2e2e" stroke-width="1"/>
+<text x="440.0" y="233.0" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#e8e8e8">Character</text>
+<text x="440.0" y="256" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" fill="#8a8a8a">Name · AttackValue · Health</text>
+<path d="M 440 206 L 440 178" fill="none" stroke="#3f3f3f" stroke-width="1.2" stroke-dasharray="4 4"/>
+<rect x="176" y="300" width="156" height="48" rx="7" fill="#0e0e0e" stroke="rgba(200,241,53,0.30)" stroke-width="1"/>
+<text x="254.0" y="318" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">abstract</text>
+<text x="254.0" y="335" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="13" fill="#e8e8e8">Heroes</text>
+<rect x="556" y="300" width="168" height="48" rx="7" fill="#0e0e0e" stroke="rgba(200,241,53,0.30)" stroke-width="1"/>
+<text x="640.0" y="318" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">abstract</text>
+<text x="640.0" y="335" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="13" fill="#e8e8e8">Enemies</text>
+<rect x="792" y="300" width="150" height="48" rx="7" fill="#0a0a0a" stroke="#383838" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="867.0" y="318" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">interface</text>
+<text x="867.0" y="335" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="13" fill="#d8d8d8">IEnemies</text>
+<path d="M 440 266 L 440 283.0 M 254 283.0 L 640 283.0 M 254 283.0 L 254 300 M 640 283.0 L 640 300 " fill="none" stroke="rgba(200,241,53,0.32)" stroke-width="1.4"/>
+<path d="M 724 324 L 792 324" fill="none" stroke="#3f3f3f" stroke-width="1.2" stroke-dasharray="4 4"/>
+<rect x="36" y="410" width="96" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="84.0" y="435.5" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Archer</text>
+<rect x="146" y="410" width="96" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="194.0" y="435.5" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Dwarves</text>
+<rect x="256" y="410" width="96" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="304.0" y="435.5" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Elves</text>
+<rect x="366" y="410" width="96" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="414.0" y="435.5" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Giant</text>
+<rect x="476" y="410" width="96" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="524.0" y="435.5" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Knight</text>
+<rect x="586" y="410" width="96" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="634.0" y="435.5" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Wizard</text>
+<path d="M 254 348 L 254 379.0 M 84.0 379.0 L 634.0 379.0 M 84.0 379.0 L 84.0 410 M 194.0 379.0 L 194.0 410 M 304.0 379.0 L 304.0 410 M 414.0 379.0 L 414.0 410 M 524.0 379.0 L 524.0 410 M 634.0 379.0 L 634.0 410 " fill="none" stroke="rgba(200,241,53,0.32)" stroke-width="1.4"/>
+<rect x="712" y="410" width="84" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="754.0" y="428.9" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Devil</text>
+<text x="754.0" y="442" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" fill="#c8f135">50 pts</text>
+<rect x="812" y="410" width="84" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="854.0" y="435.5" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Goblin</text>
+<rect x="912" y="410" width="84" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="954.0" y="435.5" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Skeleton</text>
+<rect x="1012" y="410" width="84" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="1054.0" y="435.5" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Zombie</text>
+<path d="M 640 348 L 640 379.0 M 640 379.0 L 1054.0 379.0 M 754.0 379.0 L 754.0 410 M 854.0 379.0 L 854.0 410 M 954.0 379.0 L 954.0 410 M 1054.0 379.0 L 1054.0 410 " fill="none" stroke="rgba(200,241,53,0.32)" stroke-width="1.4"/>
+<line x1="40" y1="498" x2="1100" y2="498" stroke="#1c1c1c" stroke-width="1"/>
+<text x="40" y="540" font-family="'Syne', system-ui, sans-serif" font-size="15" font-weight="700" letter-spacing="1" fill="#e8e8e8">Objetos &amp; hechizos</text>
+<rect x="350" y="556" width="180" height="48" rx="7" fill="#0a0a0a" stroke="#383838" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="440.0" y="574" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">interface</text>
+<text x="440.0" y="591" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="13" fill="#d8d8d8">IItem</text>
+<rect x="170" y="632" width="168" height="46" rx="7" fill="#0a0a0a" stroke="#383838" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="254.0" y="650" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">interface</text>
+<text x="254.0" y="665" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="13" fill="#d8d8d8">IOffensiveItem</text>
+<rect x="556" y="632" width="168" height="46" rx="7" fill="#0a0a0a" stroke="#383838" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="640.0" y="650" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">interface</text>
+<text x="640.0" y="665" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="13" fill="#d8d8d8">IDefensiveItem</text>
+<path d="M 440 604 L 440 618.0 M 254 618.0 L 640 618.0 M 254 618.0 L 254 632 M 640 618.0 L 640 632 " fill="none" stroke="#3f3f3f" stroke-width="1.2" stroke-dasharray="4 4"/>
+<rect x="36" y="728" width="86" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="79.0" y="753.5" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Axe</text>
+<rect x="136" y="728" width="86" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="179.0" y="753.5" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Bow</text>
+<rect x="236" y="728" width="86" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="279.0" y="753.5" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Staff</text>
+<rect x="336" y="728" width="86" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="379.0" y="753.5" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Sword</text>
+<path d="M 254 678 L 254 703.0 M 79.0 703.0 L 379.0 703.0 M 79.0 703.0 L 79.0 728 M 179.0 703.0 L 179.0 728 M 279.0 703.0 L 279.0 728 M 379.0 703.0 L 379.0 728 " fill="none" stroke="#3f3f3f" stroke-width="1.2" stroke-dasharray="4 4"/>
+<rect x="472" y="728" width="92" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="518.0" y="753.5" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Armor</text>
+<rect x="580" y="728" width="92" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="626.0" y="753.5" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Helmet</text>
+<rect x="688" y="728" width="92" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="734.0" y="753.5" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Shield</text>
+<path d="M 640 678 L 640 703.0 M 518.0 703.0 L 734.0 703.0 M 518.0 703.0 L 518.0 728 M 626.0 703.0 L 626.0 728 M 734.0 703.0 L 734.0 728 " fill="none" stroke="#3f3f3f" stroke-width="1.2" stroke-dasharray="4 4"/>
+<rect x="800" y="620" width="300" height="200" rx="7" fill="#090909" stroke="#1f1f1f" stroke-width="1"/>
+<text x="818" y="650" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="10.5" letter-spacing="1.5" fill="#8a8a8a">CASOS PARTICULARES</text>
+<rect x="818" y="666" width="264" height="62" rx="7" fill="rgba(200,241,53,0.06)" stroke="#c8f135" stroke-width="1"/>
+<text x="950.0" y="682" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">implementa ambas</text>
+<text x="950.0" y="704.44" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="13" fill="#c8f135">SpellsBook</text>
+<text x="950.0" y="719" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" fill="#8a8a8a">IOffensiveItem + IDefensiveItem</text>
+<text x="818" y="752" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="10.5" fill="#8a8a8a">Un grimorio que ataca y</text>
+<text x="818" y="768" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="10.5" fill="#8a8a8a">defiende a la vez.</text>
+<rect x="818" y="780" width="264" height="30" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="950.0" y="799.5" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Spell</text>
+</svg>
