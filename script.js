@@ -1328,6 +1328,46 @@ document.querySelectorAll('.contact-item').forEach(el => {
   });
 })();
 
+// ─── MODAL DE ARQUITECTURA ────────────────────────────────────
+// Lightbox que muestra el diagrama de clases del proyecto al
+// interactuar con la card. Cierra con Escape, click en el backdrop
+// o el botón ✕; pausa Lenis y devuelve el foco al abridor.
+(function initArchModal() {
+  const modal = document.getElementById('arch-modal');
+  if (!modal) return;
+  const openers = document.querySelectorAll('[data-arch-open]');
+  if (!openers.length) return;
+  let lastFocused = null;
+
+  function open() {
+    lastFocused = document.activeElement;
+    modal.hidden = false;
+    requestAnimationFrame(() => modal.classList.add('open'));
+    document.body.style.overflow = 'hidden';
+    // El cursor custom se dibuja en el canvas (z detrás del modal): sin esto
+    // queda invisible sobre el modal. 'cursor-hidden' reactiva el cursor nativo.
+    document.body.classList.add('cursor-hidden');
+    if (window.lenis) window.lenis.stop();
+    const closeBtn = modal.querySelector('.arch-modal-close');
+    if (closeBtn) closeBtn.focus();
+  }
+  function close() {
+    if (modal.hidden) return;
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+    document.body.classList.remove('cursor-hidden');
+    if (window.lenis) window.lenis.start();
+    setTimeout(() => { modal.hidden = true; }, 280);
+    if (lastFocused && lastFocused.focus) lastFocused.focus();
+  }
+
+  openers.forEach(b => b.addEventListener('click', open));
+  modal.querySelectorAll('[data-arch-close]').forEach(b => b.addEventListener('click', close));
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') close();
+  });
+})();
+
 // ─── HERO 3D — ICOSAEDRO DECONSTRUIBLE (Three.js) ─────────────
 // El blob del hero es un icosaedro facetado (180 caras) que late
 // suavemente. Al scrollear fuera del hero se DECONSTRUYE: una onda
@@ -1336,7 +1376,7 @@ document.querySelectorAll('.contact-item').forEach(el => {
 // partículas que derivan hacia arriba — eco del SA point cloud de
 // más abajo. Todo es función pura del progress de scroll:
 // scrubbed y 100% reversible.
-(function initHero3D() {
+function initHero3D() {
   if (isMobile) return;
 
   const canvas = document.getElementById('hero-3d');
@@ -1928,7 +1968,17 @@ document.querySelectorAll('.contact-item').forEach(el => {
     renderer.render(scene, camera);
   }
   tick3d();
-})();
+}
+
+// Three.js (~150KB gzip) solo se usa en desktop: en mobile el icosaedro
+// está apagado. Lo cargamos de forma diferida para no descargarlo en
+// mobile; initHero3D arranca recién en el onload de la librería.
+if (!isMobile) {
+  const _three = document.createElement('script');
+  _three.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+  _three.onload = initHero3D;
+  document.head.appendChild(_three);
+}
 
 
 // ─── SA POINT CLOUD — logo de partículas ─────────────────────

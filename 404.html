@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 — Página no encontrada · Santiago Abella</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#030303">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=DM+Mono:wght@400&display=swap">
+  <style>
+    :root {
+      --bg: #030303;
+      --text: #e8e8e8;
+      --text-muted: #8a8a8a;
+      --accent: #c8f135;
+      --border: #1a1a1a;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      text-align: center;
+      padding: 24px;
+      overflow: hidden;
+    }
+    .wrap { max-width: 520px; }
+    .tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+    .code {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(96px, 24vw, 200px);
+      line-height: 0.9;
+      letter-spacing: -0.04em;
+      background: linear-gradient(180deg, var(--text) 40%, var(--text-muted));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .code span { color: var(--accent); -webkit-text-fill-color: var(--accent); }
+    h1 {
+      font-weight: 600;
+      font-size: clamp(18px, 4vw, 24px);
+      margin: 16px 0 10px;
+    }
+    p {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    .home {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      color: var(--bg);
+      background: var(--accent);
+      padding: 13px 26px;
+      border-radius: 100px;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s;
+    }
+    .home:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(200, 241, 53, 0.25);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .home { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <p class="tag">// error 404</p>
+    <div class="code">4<span>0</span>4</div>
+    <h1>Esta página no existe</h1>
+    <p>El enlace que seguiste está roto o la página se movió. Volvé al inicio y seguí explorando.</p>
+    <a href="/" class="home">← Volver al inicio</a>
+  </main>
+</body>
+</html>

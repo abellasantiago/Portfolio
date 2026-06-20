@@ -55,11 +55,22 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
   <link rel="shortcut icon" href="favicon.ico">
   <link rel="apple-touch-icon" sizes="192x192" href="favicon-192.png">
   <link rel="stylesheet" href="style.css">
+
+  <!-- Sin JavaScript: el JS revela estas capas; sin él quedarían ocultas.
+       Evita que la página se vea en negro/vacía con JS deshabilitado o en crawlers sin JS. -->
+  <noscript>
+    <style>
+      #intro-overlay { display: none !important; }
+      .oculto { opacity: 1 !important; transform: none !important; }
+    </style>
+  </noscript>
+
   <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
 </head>
 <body>
@@ -100,7 +111,10 @@
 <!-- HERO -->
 <section id="hero">
   <div class="hero-inner">
-    <img src="Foto_perfil.jpg" alt="Santiago Abella" class="foto-perfil" width="460" height="460" decoding="async" fetchpriority="high">
+    <picture class="foto-pic">
+      <source srcset="Foto_perfil.webp" type="image/webp">
+      <img src="Foto_perfil.jpg" alt="Santiago Abella" class="foto-perfil" width="460" height="460" decoding="async" fetchpriority="high">
+    </picture>
     <p class="hero-tag">Disponible para nuevas oportunidades</p>
     <h1>Santiago<br><em>Abella</em></h1>
     <p class="hero-sub">
@@ -109,8 +123,8 @@
     </p>
     <div class="hero-cta">
       <a href="#contacto" class="btn-primary">Contactar</a>
-      <a href="https://github.com/abellasantiago" target="_blank" class="btn-ghost">GitHub</a>
-      <a href="https://linkedin.com/in/santiagoabella" target="_blank" class="btn-ghost">LinkedIn</a>
+      <a href="https://github.com/abellasantiago" target="_blank" rel="noopener noreferrer" class="btn-ghost">GitHub</a>
+      <a href="https://linkedin.com/in/santiagoabella" target="_blank" rel="noopener noreferrer" class="btn-ghost">LinkedIn</a>
       <a href="CV_Santiago_Abella.pdf" download class="btn-ghost btn-cv">CV</a>
     </div>
   </div>
@@ -240,11 +254,15 @@
           <span class="project-tag">C# · .NET</span>
           <span class="project-tag">RPG</span>
           <span class="project-tag">OOP</span>
-          <span class="project-tag">SOLID</span>
         </div>
-        <a href="https://github.com/abellasantiago/PII_RoleplayGame" target="_blank" class="project-link" title="Ver en GitHub">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-        </a>
+        <div class="project-links">
+          <button type="button" class="project-link" data-arch-open title="Ver arquitectura de clases" aria-label="Ver diagrama de arquitectura de clases">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v6M6 14h12M6 14v2M18 14v2"/></svg>
+          </button>
+          <a href="https://github.com/abellasantiago/PII_RoleplayGame" target="_blank" rel="noopener noreferrer" class="project-link" title="Ver en GitHub">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          </a>
+        </div>
       </div>
       <h3 class="project-title">Middle Earth Encounters</h3>
       <p class="project-desc">
@@ -260,22 +278,28 @@
       </div>
     </article>
 
-    <article class="project-card project-card--placeholder">
+    <article class="project-card no-shine">
       <div class="project-card-top">
         <div class="project-meta">
-          <span class="project-tag project-tag--dim">Próximamente</span>
-          <span class="project-tag" style="visibility:hidden">·</span>
-          <span class="project-tag" style="visibility:hidden">·</span>
-          <span class="project-tag" style="visibility:hidden">·</span>
+          <span class="project-tag">HTML · CSS · JS</span>
+          <span class="project-tag">Three.js</span>
         </div>
-        <span class="project-link project-link--disabled" aria-hidden="true">
+        <a href="https://github.com/abellasantiago/Portfolio" target="_blank" rel="noopener noreferrer" class="project-link" title="Ver en GitHub">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-        </span>
+        </a>
       </div>
-      <h3 class="project-title project-title--dim">Recommendation Chatbot</h3>
-      <p class="project-desc project-desc--dim">
-        En desarrollo. Los proyectos se agregan a medida que avanzo en la carrera.
+      <h3 class="project-title">Portfolio Personal</h3>
+      <p class="project-desc">
+        Este mismo sitio. Construido desde cero en HTML, CSS y JavaScript vanilla, sin frameworks ni build tools: un icosaedro 3D en Three.js, un campo de partículas neural interactivo en canvas, smooth scroll, modo claro/oscuro y una capa completa de SEO y accesibilidad.
       </p>
+      <div class="project-footer">
+        <div class="project-stats">
+          <span><span class="stat-num">0</span> frameworks</span>
+          <span><span class="stat-num">2.3K</span> líneas JS</span>
+          <span><span class="stat-num">20+</span> efectos</span>
+        </div>
+        <span class="project-year">2026</span>
+      </div>
     </article>
 
   </div>
@@ -315,12 +339,12 @@
       <span class="contact-value">santiagoabella.f@gmail.com</span>
       <span class="contact-arrow">↗</span>
     </a>
-    <a href="https://linkedin.com/in/santiagoabella" target="_blank" class="contact-item">
+    <a href="https://linkedin.com/in/santiagoabella" target="_blank" rel="noopener noreferrer" class="contact-item">
       <span class="contact-label">LinkedIn</span>
       <span class="contact-value">in/santiagoabella</span>
       <span class="contact-arrow">↗</span>
     </a>
-    <a href="https://github.com/abellasantiago" target="_blank" class="contact-item">
+    <a href="https://github.com/abellasantiago" target="_blank" rel="noopener noreferrer" class="contact-item">
       <span class="contact-label">GitHub</span>
       <span class="contact-value">abellasantiago</span>
       <span class="contact-arrow">↗</span>
@@ -338,7 +362,26 @@
   <span class="footer-copy">Montevideo, Uruguay</span>
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- MODAL — diagrama de arquitectura (Middle Earth Encounters) -->
+<div id="arch-modal" class="arch-modal" role="dialog" aria-modal="true" aria-labelledby="arch-modal-title" hidden>
+  <div class="arch-modal-backdrop" data-arch-close></div>
+  <div class="arch-modal-panel">
+    <div class="arch-modal-head">
+      <span id="arch-modal-title">Middle Earth Encounters · arquitectura de clases</span>
+      <button type="button" class="arch-modal-close" data-arch-close aria-label="Cerrar diagrama">✕</button>
+    </div>
+    <div class="arch-modal-body">
+      <img src="middle-earth-architecture.svg" alt="Diagrama de arquitectura de clases: la interfaz ICharacter y la clase Character derivan en las clases abstractas Heroes (Archer, Dwarves, Elves, Giant, Knight, Wizard) y Enemies (Devil, Goblin, Skeleton, Zombie); más interfaces de items ofensivos y defensivos, armas, armaduras y el grimorio SpellsBook que implementa ambas." loading="lazy" decoding="async">
+    </div>
+  </div>
+</div>
+
 <script src="script.js"></script>
+
+<!-- Analytics — GoatCounter (privacy-friendly: sin cookies ni datos personales).
+     Para activar: 1) creá una cuenta gratis en https://www.goatcounter.com/
+                   2) reemplazá TU-CODIGO por el código de tu sitio
+                   3) descomentá la línea de abajo. -->
+<!-- <script data-goatcounter="https://TU-CODIGO.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script> -->
 </body>
 </html>

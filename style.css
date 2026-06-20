@@ -3,7 +3,9 @@
    Aesthetic: Dark editorial + parallax life
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap');
+/* Fuentes: cargadas vía <link> en el <head> de index.html.
+   Antes iban por @import acá, lo que las pedía recién después de bajar
+   y parsear este CSS (waterfall). En el <head> bajan en paralelo. */
 
 /* --- VARIABLES --- */
 :root {
@@ -428,6 +430,7 @@ a.nav-logo { text-decoration: none; cursor: pointer; }
   to { opacity: 1; transform: translateY(0); }
 }
 
+.foto-pic { display: contents; }
 .foto-perfil {
   width: 72px; height: 72px;
   border-radius: 50%; object-fit: cover;
@@ -994,6 +997,108 @@ footer {
   font-size: 10px;
   color: var(--text-muted);
   letter-spacing: 0.08em;
+}
+
+/* Grupo de acciones de la card (arquitectura + GitHub) */
+.project-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+button.project-link {
+  background: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+/* ─── MODAL DE ARQUITECTURA ───────────────────────────────────
+   Lightbox del diagrama de clases; se abre desde la card. */
+.arch-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  cursor: auto;
+}
+.arch-modal[hidden] { display: none; }
+.arch-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(var(--bg-rgb), 0.82);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.28s var(--ease);
+}
+.arch-modal.open .arch-modal-backdrop { opacity: 1; }
+.arch-modal-panel {
+  position: relative;
+  z-index: 1;
+  width: min(1100px, 100%);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg2);
+  border: 1px solid rgba(var(--accent-rgb), 0.25);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.7);
+  opacity: 0;
+  transform: translateY(12px) scale(0.985);
+  transition: opacity 0.28s var(--ease), transform 0.4s var(--ease);
+}
+.arch-modal.open .arch-modal-panel {
+  opacity: 1;
+  transform: none;
+}
+.arch-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+.arch-modal-close {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  width: 30px; height: 30px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.2s, border-color 0.2s;
+}
+.arch-modal-close:hover {
+  color: var(--accent);
+  border-color: rgba(var(--accent-rgb), 0.5);
+}
+.arch-modal-body {
+  overflow: auto;
+  padding: 18px;
+}
+.arch-modal-body img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .arch-modal-backdrop,
+  .arch-modal-panel { transition: none; }
 }
 
 /* ─── NAV RIGHT (agrupa tema + hamburger) ─────────────────── */
