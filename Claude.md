@@ -254,6 +254,17 @@ Bruno Simon · Lusion · Aristide Benoist · Active Theory · Codrops · GSAP Sh
 
 ## Historial de cambios
 
+### 2026-06-20 — feat: performance, SEO/a11y, modal de arquitectura y portfolio como proyecto
+- **Performance**: Three.js (~150KB gz) ahora se carga **solo en desktop** — `initHero3D` pasó de IIFE a función nombrada y un `if(!isMobile)` al final inyecta el `<script>` de Three.js y lo llama en `onload`. En mobile (donde el icosaedro está apagado) ya no se descarga. Fuentes movidas de `@import` (en `style.css`) a `<link rel="stylesheet">` en el `<head>` → sin waterfall
+- **SEO/robustez**: `robots.txt`, `sitemap.xml`, `404.html` on-brand (paleta del sitio + link al home), `<noscript>` que oculta el `#intro-overlay` y revela las secciones `.oculto` (sin JS la página ya no queda en negro), snippet de analytics (GoatCounter, privacy-friendly) comentado listo para activar
+- **Imagen**: `Foto_perfil.webp` (216×216, 14.4KB→2.7KB, −82%) servida con `<picture>` + fallback JPEG; el wrapper usa `display:contents` para no alterar el layout del hero. La foto estaba sobredimensionada (460px para mostrar 72px), no pixelada
+- **Seguridad**: `rel="noopener noreferrer"` en todos los enlaces `target="_blank"`
+- **Feature — modal de arquitectura**: la card de Middle Earth tiene un botón que abre un lightbox con `middle-earth-architecture.svg` (diagrama de clases, antes sin usar). Cierra con ✕ / backdrop / Escape, pausa Lenis, bloquea scroll y maneja el foco. Dentro del modal se reactiva el cursor nativo vía la clase `cursor-hidden` (que el sitio ya usa para desactivar `cursor:none`)
+- **Contenido**: nueva card real **Portfolio Personal** (reemplaza el placeholder "Recommendation Chatbot") → 2 proyectos reales, grid 2×1 lleno. Tags reducidos a una sola línea (Middle Earth sin "SOLID"; Portfolio sin "Canvas"/"WebGL")
+- **Contraste**: verificado AA en modo claro (texto 17.8:1, secundario 8.3:1, acento violeta 4.86:1 — pasa, margen justo)
+- **Tooling**: `.claude/launch.json` usa `python` (el entorno tiene Python 3.14 como `python`/`py`, **no** `python3`); `README.md` enriquecido con preview (`og-image`), link al sitio en vivo, stack real y deploy
+- Rama mergeada: `claude/beautiful-jennings-91cf7d` → `main`
+
 ### 2026-06-20 — fix: favicon sin fondo blanco
 - Chrome mostraba el favicon con fondo blanco porque tomaba los PNG (`favicon-32.png` / `favicon-192.png`), que tenían fondo sólido
 - Regenerados ambos PNG con **fondo transparente** (RGBA) vía Python stdlib (`struct`/`zlib`, sin PIL): letras en pixel-art, **S blanca** (`#e8e8e8`) + **A en acento lima** (`#c8f135`)
