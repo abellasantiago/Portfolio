@@ -254,6 +254,13 @@ Bruno Simon · Lusion · Aristide Benoist · Active Theory · Codrops · GSAP Sh
 
 ## Historial de cambios
 
+### 2026-06-20 — fix: reformular experiencia cripto y reestructurar contacto
+- **Experiencia**: renombrado "Operador Independiente — Cripto & NFTs" → "Inversor Independiente — Activos Digitales" (mismo período, misma empresa; solo el título, más neutro y corporativo)
+- **Contacto**: eliminado el número de teléfono (evitar exposición pública/scraping)
+- **Contacto**: nuevo cuadrado CV con descarga directa del PDF (`CV_Santiago_Abella.pdf`), label "CV" / valor "Santiago Abella" / flecha ↓
+- **Contacto**: reordenado a LinkedIn · GitHub / Email · CV (fila superior las redes, inferior los directos)
+- Rama mergeada: `claude/sweet-moore-b1e1c1` → `main` (fast-forward)
+
 ### 2026-06-20 — feat: performance, SEO/a11y, modal de arquitectura y portfolio como proyecto
 - **Performance**: Three.js (~150KB gz) ahora se carga **solo en desktop** — `initHero3D` pasó de IIFE a función nombrada y un `if(!isMobile)` al final inyecta el `<script>` de Three.js y lo llama en `onload`. En mobile (donde el icosaedro está apagado) ya no se descarga. Fuentes movidas de `@import` (en `style.css`) a `<link rel="stylesheet">` en el `<head>` → sin waterfall
 - **SEO/robustez**: `robots.txt`, `sitemap.xml`, `404.html` on-brand (paleta del sitio + link al home), `<noscript>` que oculta el `#intro-overlay` y revela las secciones `.oculto` (sin JS la página ya no queda en negro), snippet de analytics (GoatCounter, privacy-friendly) comentado listo para activar
