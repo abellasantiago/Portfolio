@@ -175,6 +175,20 @@ body:not(.cursor-hidden) textarea { cursor: text; }
 /* El cursor visual vive en el canvas neural — sin elementos DOM extra */
 #cursor-dot  { display: none; }
 #cursor-ring { display: none; }
+
+/* ─── FOCO DE TECLADO ─────────────────────────────────────────
+   El cursor nativo está oculto: la navegación por teclado necesita
+   un ring visible. Solo :focus-visible → no aparece al click de mouse. */
+:focus { outline: none; }
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
 #cursor-ring2 { display: none; }
 
 /* ── Aura difusa ── */
@@ -1166,4 +1180,22 @@ footer {
     transform-origin: left center;
     filter: blur(var(--fb, 0px));
   }
+}
+
+/* ─── PREFERS-REDUCED-MOTION ──────────────────────────────────
+   El motor JS ya se anula con reduced-motion (reduceMotionMotor /
+   reduceMotion3d). Esto cierra el círculo del lado CSS: nada de
+   transiciones de entrada, ticker ni animaciones decorativas. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* El contenido revelado aparece ya en su sitio, sin desplazamiento */
+  .oculto { opacity: 1; transform: none; }
+  .ticker-inner { animation: none; }
 }

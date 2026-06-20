@@ -3,10 +3,10 @@
   "configurations": [
     {
       "name": "portfolio",
-      "runtimeExecutable": "node",
+      "runtimeExecutable": "python3",
       "runtimeArgs": [
-        "-e",
-        "const http=require('http'),fs=require('fs'),path=require('path');const root=process.cwd();const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.ico':'image/x-icon','.pdf':'application/pdf','.json':'application/json'};http.createServer((req,res)=>{let p=decodeURIComponent(req.url.split('?')[0]);if(p==='/')p='/index.html';const fp=path.join(root,p);fs.readFile(fp,(e,d)=>{if(e){res.writeHead(404);res.end('not found');return;}res.writeHead(200,{'Content-Type':types[path.extname(fp).toLowerCase()]||'application/octet-stream','Cache-Control':'no-store'});res.end(d);});}).listen(4173,()=>console.log('Serving '+root+' on http://localhost:4173'));"
+        "-c",
+        "import http.server,socketserver;H=http.server.SimpleHTTPRequestHandler\nclass N(H):\n def end_headers(self):\n  self.send_header('Cache-Control','no-store')\n  H.end_headers(self)\nsocketserver.TCPServer.allow_reuse_address=True\nsocketserver.TCPServer(('',4173),N).serve_forever()"
       ],
       "port": 4173
     }
