@@ -254,6 +254,12 @@ Bruno Simon · Lusion · Aristide Benoist · Active Theory · Codrops · GSAP Sh
 
 ## Historial de cambios
 
+### 2026-06-20 — fix: favicon sin fondo blanco
+- Chrome mostraba el favicon con fondo blanco porque tomaba los PNG (`favicon-32.png` / `favicon-192.png`), que tenían fondo sólido
+- Regenerados ambos PNG con **fondo transparente** (RGBA) vía Python stdlib (`struct`/`zlib`, sin PIL): letras en pixel-art, **S blanca** (`#e8e8e8`) + **A en acento lima** (`#c8f135`)
+- `favicon.svg` ya era transparente → quedó sin cambios netos
+- Rama mergeada: `claude/hopeful-mestorf-3e20ce` → `main` (fast-forward)
+
 ### 2026-06-18 — feat: cámara de scroll (parallax por capas + rack focus + motion-blur)
 - **Cámara de scroll**: el scroll se convierte en un travelling cinematográfico sobre el contenido existente (cero elementos nuevos). Tres capas que componen vía CSS vars:
   - **Parallax por profundidad** (`--py` en `updateFocus`): cada bloque tiene `_pdepth` propio — headers capa de fondo (`0.09`), texto/items capa cercana (`0.04`) — y se separan en Z al scrollear. `PY_MAX=72`, amplificado por velocidad (`velAmp = 1 + norm`). El h2 hace parallax interno extra (se separa del número)
