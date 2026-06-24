@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://abellasantiago.github.io/sitemap.xml
+Sitemap: https://abellasantiago.github.io/Portfolio/sitemap.xml
