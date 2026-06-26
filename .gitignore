@@ -1,2 +1,9 @@
-.claude/worktrees/
+# OS
 .DS_Store
+
+# Tooling interno de Claude (no es del repo)
+.claude/
+skills-lock.json
+
+# Empaquetados / temporales
+*.zip

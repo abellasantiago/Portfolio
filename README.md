@@ -2,9 +2,9 @@
 
 Mi portfolio personal. Hecho desde cero con HTML, CSS y JS — sin frameworks ni build tools.
 
-**[→ Ver en vivo](https://abellasantiago.github.io/)**
+**[→ Ver en vivo](https://abellasantiago.github.io/Portfolio/)**
 
-![Santiago Abella — Portfolio](og-image.png)
+![Santiago Abella — Portfolio](assets/og-image.png)
 
 ---
 
@@ -51,9 +51,12 @@ portfolio/
 ├── 404.html
 ├── robots.txt
 ├── sitemap.xml
-├── Foto_perfil.jpg
-├── CV_Santiago_Abella.pdf
-└── favicon.*  (svg · ico · png 32/192)
+└── assets/
+    ├── Foto_perfil.jpg · Foto_perfil.webp
+    ├── CV_Santiago_Abella.pdf
+    ├── og-image.png
+    ├── middle-earth-architecture.svg
+    └── favicon.*  (svg · ico · png 32/192)
 ```
 
 ---
@@ -66,7 +69,7 @@ Porque quería entender qué pasa debajo antes de usar abstracciones. Puede que 
 
 ## Deploy
 
-Hosteado en **GitHub Pages** desde la rama `main` → [abellasantiago.github.io](https://abellasantiago.github.io/).
+Hosteado en **GitHub Pages** desde la rama `main` → [abellasantiago.github.io/Portfolio](https://abellasantiago.github.io/Portfolio/).
 
 ---
 
