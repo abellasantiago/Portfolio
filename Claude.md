@@ -21,16 +21,27 @@ Librerías externas:
 ```
 portfolio/
 ├── index.html
+├── 404.html
 ├── style.css
 ├── script.js
+├── robots.txt
+├── sitemap.xml
+├── README.md
 ├── Claude.md              ← este archivo
-├── Foto_perfil.jpg
-├── CV_Santiago_Abella.pdf
-├── favicon.svg
-├── favicon-32.png
-├── favicon.ico
-└── favicon-192.png
+└── assets/
+    ├── Foto_perfil.jpg · Foto_perfil.webp
+    ├── CV_Santiago_Abella.pdf
+    ├── og-image.png
+    ├── middle-earth-architecture.svg
+    ├── favicon.svg
+    ├── favicon-32.png
+    ├── favicon.ico
+    └── favicon-192.png
 ```
+
+> **Assets en `assets/`**: todos los binarios (fotos, favicons, og-image, CV, svg del diagrama) viven en `assets/`. La raíz queda solo con lo estructural. Referencias relativas (`assets/…`) en `index.html`; absolutas (`/Portfolio/assets/…`) en `404.html` y URLs `og:image`/JSON-LD.
+
+> **Tooling interno fuera del repo**: `.claude/` y `skills-lock.json` están en `.gitignore` (junto con `.DS_Store` y `*.zip`). El `.claude/launch.json` local usa `python3` para el preview (el entorno macOS no tiene `python` a secas).
 
 ---
 
@@ -253,6 +264,15 @@ Bruno Simon · Lusion · Aristide Benoist · Active Theory · Codrops · GSAP Sh
 ---
 
 ## Historial de cambios
+
+### 2026-06-26 — chore: higiene del repo (assets/, untrack tooling, eliminar files.zip)
+- **Assets ordenados**: todos los binarios movidos a `assets/` con `git mv` (preserva historial) → favicons, `Foto_perfil.jpg/.webp`, `og-image.png`, `middle-earth-architecture.svg`, `CV_Santiago_Abella.pdf`. La raíz queda solo con lo estructural
+- **Refs actualizadas**: `index.html` (favicons, foto, CV ×2, diagrama, og:image/JSON-LD), `404.html` (`/Portfolio/assets/favicon.svg`), `README.md` (imagen + árbol de estructura)
+- **Ruido eliminado**: `files.zip` (96K) borrado del repo; `.claude/` y `skills-lock.json` untrackeados (`git rm --cached`, siguen en disco)
+- **`.gitignore`** reescrito para ignorar todo lo interno: `.DS_Store`, `.claude/`, `skills-lock.json`, `*.zip`
+- **README**: link "Ver en vivo" y deploy ahora apuntan a `https://abellasantiago.github.io/Portfolio/` (antes a la raíz, que es otro sitio)
+- **Tooling**: `.claude/launch.json` local cambiado de `python` → `python3` (el entorno macOS no tiene `python` a secas); preview verificado (assets 200, foto decodifica desde `assets/`)
+- Commit directo a `main` (sin rama): `9444115`
 
 ### 2026-06-20 — fix: reformular experiencia cripto y reestructurar contacto
 - **Experiencia**: renombrado "Operador Independiente — Cripto & NFTs" → "Inversor Independiente — Activos Digitales" (mismo período, misma empresa; solo el título, más neutro y corporativo)
