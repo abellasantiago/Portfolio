@@ -247,10 +247,9 @@ function initGridCells() {
     });
   }
 
-  const skillGrid   = document.querySelector('.skills-grid');
+  document.querySelectorAll('.skills-grid').forEach(g => prepareGrid(g, getComputedCols(g)));
   const contactGrid = document.querySelector('.contact-grid');
   const projectGrid = document.querySelector('.project-grid');
-  if (skillGrid)   prepareGrid(skillGrid,   getComputedCols(skillGrid));
   if (contactGrid) prepareGrid(contactGrid, getComputedCols(contactGrid));
   if (projectGrid) prepareGrid(projectGrid, getComputedCols(projectGrid));
 }
@@ -261,10 +260,7 @@ function updateGridCells() {
   const accentRgb = getComputedStyle(document.body)
     .getPropertyValue('--accent-rgb').trim() || '200,241,53';
 
-  ['.skills-grid', '.contact-grid', '.project-grid'].forEach(selector => {
-    const grid = document.querySelector(selector);
-    if (!grid) return;
-
+  document.querySelectorAll('.skills-grid, .contact-grid, .project-grid').forEach(grid => {
     const rect       = grid.getBoundingClientRect();
     const enterAt    = wh + 100;
     const completeAt = wh * 0.15;
