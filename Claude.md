@@ -265,6 +265,16 @@ Bruno Simon · Lusion · Aristide Benoist · Active Theory · Codrops · GSAP Sh
 
 ## Historial de cambios
 
+### 2026-06-29 — feat: rediseño sección habilidades (grupos categorizados + iconos monocromáticos)
+- **Tres grupos** en `#habilidades` (antes un solo grid plano): **Lenguajes & Tecnologías** (C#/.NET · Python · JavaScript · SQL · HTML/CSS), **Herramientas** (Git/GitHub · VS Code · Excel) y **Enfoque & Competencias** (IA Aplicada · Análisis de Negocio · Gestión de Proyectos · Resolución de Problemas · Trabajo en Equipo). Cada grupo en `.skill-group` con etiqueta `─ NOMBRE` (`.group-label` = tick accent + label mono), **sin** número de cantidad
+- **Iconos SVG monocromáticos 16×16**: nuevo sprite (`<symbol>` ×13) inyectado tras `<body>`; cada skill referencia su glyph vía `<use href="#ico-…">`. Cinco marcas reales de Simple Icons (`.ico.solid` → `fill: currentColor`: dotnet, python, js, html, git) + ocho glyphs de línea propios (`.ico.line` → `stroke: currentColor`: sql, vscode, excel, ai, analysis, pm, problem, team). Viven en `--text-muted` y se encienden a `--accent` con `scale(1.12)` + `drop-shadow` en hover. El `.skill-item::before` (dot) pasó a `display:none` para no convivir con el ícono
+- **Sin columnas fantasma**: `.skills-grid` pasó de `auto-fill` a **`auto-fit`** (desktop `minmax(170px,1fr)`, mobile `minmax(130px,1fr)`) → los tracks sin celdas colapsan y el grid termina donde termina la última celda. Con el ancho de contenido (760−80 = 680px) el grid resuelve a **3 columnas**: Herramientas (3) llena una fila exacta; los grupos de 5 quedan 3+2 (el último slot muestra solo el fondo translúcido del grid, sin borde de celda)
+- **Wave reveal en las 3 grids**: `initGridCells()` y `updateGridCells()` usaban `querySelector('.skills-grid')` → solo preparaban/animaban la primera. Ahora iteran con `querySelectorAll` (init: `.skills-grid`; update: `.skills-grid, .contact-grid, .project-grid`). El cuerpo interno del loop no cambió
+- **Modo claro**: overrides de `.group-label .label-text` (→ `--text`) y `.tick` (→ `--accent` violeta)
+- Verificado en preview headless (`preview_eval`): 3 grupos con tick, 13 iconos sin símbolos faltantes, `::before` oculto, las 3 grids preparadas para el reveal, iconos 16×16 en muted, claro OK, consola limpia. El layout de columnas no es verificable headless (`innerWidth:0` → rama mobile); se razonó a mano con el ancho real
+- Solo `index.html` + `style.css` + `script.js`
+- Rama mergeada: `claude/funny-goldwasser-12dada` → `main` (fast-forward)
+
 ### 2026-06-26 — chore: higiene del repo (assets/, untrack tooling, eliminar files.zip)
 - **Assets ordenados**: todos los binarios movidos a `assets/` con `git mv` (preserva historial) → favicons, `Foto_perfil.jpg/.webp`, `og-image.png`, `middle-earth-architecture.svg`, `CV_Santiago_Abella.pdf`. La raíz queda solo con lo estructural
 - **Refs actualizadas**: `index.html` (favicons, foto, CV ×2, diagrama, og:image/JSON-LD), `404.html` (`/Portfolio/assets/favicon.svg`), `README.md` (imagen + árbol de estructura)
