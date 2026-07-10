@@ -4,7 +4,7 @@ Mi portfolio personal. Hecho desde cero con HTML, CSS y JS — sin frameworks ni
 
 **[→ Ver en vivo](https://abellasantiago.github.io/Portfolio/)**
 
-![Santiago Abella — Portfolio](assets/og-image.png)
+![Santiago Abella — Portfolio](assets/img/og-image.png)
 
 ---
 
@@ -52,11 +52,10 @@ portfolio/
 ├── robots.txt
 ├── sitemap.xml
 └── assets/
-    ├── Foto_perfil.jpg · Foto_perfil.webp
     ├── CV_Santiago_Abella.pdf
-    ├── og-image.png
-    ├── middle-earth-architecture.svg
-    └── favicon.*  (svg · ico · png 32/192)
+    ├── favicons/   → favicon.svg · favicon.ico · favicon-32.png · favicon-192.png
+    ├── img/        → Foto_perfil.jpg · Foto_perfil.webp · og-image.png
+    └── diagrams/   → middle-earth-architecture.svg · chatbot-recommendation-architecture.svg
 ```
 
 ---

@@ -1,5 +1,7 @@
 # OS
 .DS_Store
+Thumbs.db
+desktop.ini
 
 # Tooling interno de Claude (no es del repo)
 .claude/

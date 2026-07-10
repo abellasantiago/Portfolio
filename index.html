@@ -16,7 +16,7 @@
   <meta property="og:url" content="https://abellasantiago.github.io/Portfolio/">
   <meta property="og:title" content="Santiago Abella — Portfolio">
   <meta property="og:description" content="Lic. en Dirección de Empresas y estudiante de Desarrollo de Software. Backend, automatización e IA con C#, .NET, Python y Git.">
-  <meta property="og:image" content="https://abellasantiago.github.io/Portfolio/assets/og-image.png">
+  <meta property="og:image" content="https://abellasantiago.github.io/Portfolio/assets/img/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Santiago Abella — Portfolio">
@@ -27,7 +27,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Santiago Abella — Portfolio">
   <meta name="twitter:description" content="Lic. en Dirección de Empresas y estudiante de Desarrollo de Software. Backend, automatización e IA con C#, .NET, Python y Git.">
-  <meta name="twitter:image" content="https://abellasantiago.github.io/Portfolio/assets/og-image.png">
+  <meta name="twitter:image" content="https://abellasantiago.github.io/Portfolio/assets/img/og-image.png">
 
   <!-- JSON-LD: Person -->
   <script type="application/ld+json">
@@ -36,7 +36,7 @@
     "@type": "Person",
     "name": "Santiago Abella",
     "url": "https://abellasantiago.github.io/Portfolio/",
-    "image": "https://abellasantiago.github.io/Portfolio/assets/og-image.png",
+    "image": "https://abellasantiago.github.io/Portfolio/assets/img/og-image.png",
     "jobTitle": "Estudiante de Desarrollo de Software",
     "email": "santiagoabella.f@gmail.com",
     "address": {
@@ -56,10 +56,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap">
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
-  <link rel="shortcut icon" href="assets/favicon.ico">
-  <link rel="apple-touch-icon" sizes="192x192" href="assets/favicon-192.png">
+  <link rel="icon" type="image/svg+xml" href="assets/favicons/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicons/favicon-32.png">
+  <link rel="shortcut icon" href="assets/favicons/favicon.ico">
+  <link rel="apple-touch-icon" sizes="192x192" href="assets/favicons/favicon-192.png">
   <link rel="stylesheet" href="style.css">
 
   <!-- Sin JavaScript: el JS revela estas capas; sin él quedarían ocultas.
@@ -177,8 +177,8 @@
 <section id="hero">
   <div class="hero-inner">
     <picture class="foto-pic">
-      <source srcset="assets/Foto_perfil.webp" type="image/webp">
-      <img src="assets/Foto_perfil.jpg" alt="Santiago Abella" class="foto-perfil" width="460" height="460" decoding="async" fetchpriority="high">
+      <source srcset="assets/img/Foto_perfil.webp" type="image/webp">
+      <img src="assets/img/Foto_perfil.jpg" alt="Santiago Abella" class="foto-perfil" width="460" height="460" decoding="async" fetchpriority="high">
     </picture>
     <p class="hero-tag">Disponible para nuevas oportunidades</p>
     <h1>Santiago<br><em>Abella</em></h1>
@@ -346,7 +346,7 @@
         </div>
         <div class="project-links">
           <button type="button" class="project-link" data-arch-open
-                  data-arch-src="assets/chatbot-recommendation-architecture.svg"
+                  data-arch-src="assets/diagrams/chatbot-recommendation-architecture.svg"
                   data-arch-title="Chatbot · Recommendation Engine — arquitectura de clases"
                   data-arch-alt="Diagrama de arquitectura de clases: SystemFacade (Facade + Singleton) orquesta el RecommendationEngine, cuyo pipeline compone las interfaces IRecommendationStrategy (BasedOnHistory, BasedOnPreferences, BasedOnSimilarUsers, PopularityStrategy, PopularityByArtistStrategy), IRecommendationFilter (ExcludeConsumedFilter, ExcludeTagsFilter) e IRecommendationSorter (NewestSorter, PopularitySorter); el dominio expone IContent (Music), IContentRepository (Catalog), IUserRepository (UserRepository) y la clase base GenericUser (User, Admin); la capa de Discord usa IBot (Bot, BotLoader) y una capa de comandos sobre el Facade."
                   title="Ver arquitectura de clases" aria-label="Ver diagrama de arquitectura de clases">
@@ -380,7 +380,7 @@
         </div>
         <div class="project-links">
           <button type="button" class="project-link" data-arch-open
-                  data-arch-src="assets/middle-earth-architecture.svg"
+                  data-arch-src="assets/diagrams/middle-earth-architecture.svg"
                   data-arch-title="Middle Earth Encounters · arquitectura de clases"
                   data-arch-alt="Diagrama de arquitectura de clases: la interfaz ICharacter y la clase Character derivan en las clases abstractas Heroes (Archer, Dwarves, Elves, Giant, Knight, Wizard) y Enemies (Devil, Goblin, Skeleton, Zombie); más interfaces de items ofensivos y defensivos, armas, armaduras y el grimorio SpellsBook que implementa ambas."
                   title="Ver arquitectura de clases" aria-label="Ver diagrama de arquitectura de clases">
@@ -497,7 +497,7 @@
       <button type="button" class="arch-modal-close" data-arch-close aria-label="Cerrar diagrama">✕</button>
     </div>
     <div class="arch-modal-body">
-      <img src="assets/middle-earth-architecture.svg" alt="Diagrama de arquitectura de clases: la interfaz ICharacter y la clase Character derivan en las clases abstractas Heroes (Archer, Dwarves, Elves, Giant, Knight, Wizard) y Enemies (Devil, Goblin, Skeleton, Zombie); más interfaces de items ofensivos y defensivos, armas, armaduras y el grimorio SpellsBook que implementa ambas." loading="lazy" decoding="async">
+      <img src="assets/diagrams/middle-earth-architecture.svg" alt="Diagrama de arquitectura de clases: la interfaz ICharacter y la clase Character derivan en las clases abstractas Heroes (Archer, Dwarves, Elves, Giant, Knight, Wizard) y Enemies (Devil, Goblin, Skeleton, Zombie); más interfaces de items ofensivos y defensivos, armas, armaduras y el grimorio SpellsBook que implementa ambas." loading="lazy" decoding="async">
     </div>
   </div>
 </div>

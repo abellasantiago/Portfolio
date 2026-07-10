@@ -29,19 +29,23 @@ portfolio/
 ├── README.md
 ├── Claude.md              ← este archivo
 └── assets/
-    ├── Foto_perfil.jpg · Foto_perfil.webp
     ├── CV_Santiago_Abella.pdf
-    ├── og-image.png
-    ├── middle-earth-architecture.svg
-    ├── favicon.svg
-    ├── favicon-32.png
-    ├── favicon.ico
-    └── favicon-192.png
+    ├── favicons/
+    │   ├── favicon.svg
+    │   ├── favicon-32.png
+    │   ├── favicon.ico
+    │   └── favicon-192.png
+    ├── img/
+    │   ├── Foto_perfil.jpg · Foto_perfil.webp
+    │   └── og-image.png
+    └── diagrams/
+        ├── middle-earth-architecture.svg
+        └── chatbot-recommendation-architecture.svg
 ```
 
-> **Assets en `assets/`**: todos los binarios (fotos, favicons, og-image, CV, svg del diagrama) viven en `assets/`. La raíz queda solo con lo estructural. Referencias relativas (`assets/…`) en `index.html`; absolutas (`/Portfolio/assets/…`) en `404.html` y URLs `og:image`/JSON-LD.
+> **Assets agrupados por categoría**: dentro de `assets/` los binarios viven en subcarpetas por tipo — `favicons/` (íconos del sitio), `img/` (foto de perfil + og-image), `diagrams/` (SVG de arquitectura de clases por proyecto, usados por el modal data-driven). El CV queda suelto en `assets/` por ser un único archivo sin categoría propia. La raíz del repo queda solo con lo estructural (HTML/CSS/JS + SEO). No hay carpeta `docs/`: `README.md` y `Claude.md` deben vivir en la raíz por convención (GitHub los renderiza ahí; Claude Code autocarga `Claude.md` solo desde la raíz del proyecto) — no hay más documentación que amerite una carpeta aparte. `style.css`/`script.js` quedan sueltos en la raíz por ser un único archivo cada uno; anidarlos en `css/`/`js/` sería una carpeta por archivo, indirection sin beneficio. Referencias relativas (`assets/…`) en `index.html`; absolutas (`/Portfolio/assets/…`) en `404.html` y URLs `og:image`/JSON-LD.
 
-> **Tooling interno fuera del repo**: `.claude/` y `skills-lock.json` están en `.gitignore` (junto con `.DS_Store` y `*.zip`). El `.claude/launch.json` local usa `python3` para el preview (el entorno macOS no tiene `python` a secas).
+> **Tooling interno fuera del repo**: `.claude/` y `skills-lock.json` están en `.gitignore` (junto con `.DS_Store`, `Thumbs.db`, `desktop.ini` y `*.zip`). El `.claude/launch.json` local usa `python` para el preview (entorno Windows con Python en PATH como `python`, no `python3`).
 
 ---
 
@@ -264,6 +268,23 @@ Bruno Simon · Lusion · Aristide Benoist · Active Theory · Codrops · GSAP Sh
 ---
 
 ## Historial de cambios
+
+### 2026-07-10 — chore: reorganización de assets/ en subcarpetas por categoría
+- **`assets/` dejó de ser plano**: con 10 archivos de 4 tipos mezclados (favicons, fotos/og-image, diagramas de arquitectura, CV) ya ameritaba subcarpetas. Movidos con `git mv` (preserva historial): `favicons/` (favicon.svg · favicon.ico · favicon-32.png · favicon-192.png), `img/` (Foto_perfil.jpg · Foto_perfil.webp · og-image.png), `diagrams/` (middle-earth-architecture.svg · chatbot-recommendation-architecture.svg). El CV queda suelto en `assets/` — un solo archivo no amerita carpeta propia
+- **Refs actualizadas**: `index.html` (favicons ×4, foto ×2, og:image/JSON-LD ×3, data-arch-src ×2, img src del diagrama ×1), `404.html` (favicon absoluto `/Portfolio/assets/favicons/favicon.svg`), `README.md` (árbol de estructura)
+- **Se evaluó y descartó** una carpeta `docs/`: no hay más documentación que `README.md` y `Claude.md`, y ambos deben vivir en la raíz por convención (GitHub renderiza el README ahí; Claude Code autocarga `Claude.md` solo desde la raíz). Tampoco se anidó `style.css`/`script.js` en `css/`/`js/`: son un archivo cada uno, una carpeta por archivo es indirection sin beneficio. `index.html`, `404.html`, `robots.txt`, `sitemap.xml` quedan en la raíz porque GitHub Pages y los crawlers los exigen ahí
+- **`.gitignore`**: sumados `Thumbs.db` y `desktop.ini` (cruft de Windows — el entorno de desarrollo pasó de macOS a Windows)
+- Sin cambios de código/estilo — solo reorganización de archivos y referencias
+
+### 2026-07-10 — feat: card Chatbot Recommendation Engine + rediseño proyectos con dolly 3D
+- **Nueva card de proyecto**: Chatbot · Recommendation Engine (repo `PII_ChatbotRecommendation`), mismo patrón que las demás (tags, links, título, descripción, stats animados). Tags cortos para que quepan en una línea (`C# · .NET` + `Chatbot`, sin "Design Patterns"/"SOLID" — quedaban largos)
+- **Modal de arquitectura data-driven**: el `#arch-modal` (antes hardcodeado a Middle Earth) ahora lee `data-arch-src`/`data-arch-title`/`data-arch-alt` de cada botón opener → un solo modal sirve a ambos proyectos con diagrama de clases. Nuevo `assets/diagrams/chatbot-recommendation-architecture.svg`, mismo lenguaje visual que el de Middle Earth (fondo `#070707`, acento lima, DM Mono, cajas interface/clase base/concrete), construido a partir del árbol real del repo vía API de GitHub (sin inventar clases)
+- **Proyectos reordenados**: Portfolio Personal → Recommendation Engine → Middle Earth Encounters (antes Middle Earth → Chatbot → Portfolio)
+- **Layout de `.project-grid`**: pasó de scroller horizontal a **breakout centrado** — las 3 cards vuelven a su ancho previo (~340px) y la grilla se sale del `max-width` del sitio (760px) hacia los costados (`width: min(1040px, 94vw)`, centrada con márgenes negativos calculados, nunca `transform`, para no volverla backdrop-root y romper el `backdrop-filter` que muestra el canvas neural detrás). Las 3 quedan visibles en simultáneo, sin scroll horizontal, con cap a `94vw` para pantallas angostas
+- **Efecto dolly en Z al hover**: al pasar el cursor por la grid, las cards no-activas retroceden (`perspective(1100px) translateZ(-80px)`, `blur(1.5px)`, opacity 0.4) y la activa avanza (`translateZ(60px)`, opacity 1, z-index 6). La perspectiva va **por card**, nunca en `.project-grid` (mismo motivo que el breakout: un ancestro con `perspective`/`transform` rompe el `backdrop-filter`). Gateado a `@media (hover: hover) and (min-width: 701px)`, anulado con `prefers-reduced-motion`. En mobile las cards se apilan en columna full-width, sin dolly
+- **Fix de fluidez**: el stagger de entrada (`script.js`, línea ~140) le pegaba un `transition-delay` inline a cada `.project-card` (pensado para `.item`/`.skill-item`/`.contact-item`) que las project cards no necesitan — entran con el reveal de toda la sección, no card por card. Ese delay contaminaba la transición del hover del dolly y generaba lag visible en el zoom in/out. Se excluyen las project cards del loop de stagger; además la curva de transición pasó de `--ease` (cola larga, sensación de arrastre) a `ease-out` con duraciones más cortas (0.3s transform/filter, 0.26s opacity)
+- Solo `index.html` + `style.css` + `script.js` + `assets/diagrams/chatbot-recommendation-architecture.svg`
+- Commit directo a `main`: `6592d41`
 
 ### 2026-06-29 — feat: rediseño sección habilidades (grupos categorizados + iconos monocromáticos)
 - **Tres grupos** en `#habilidades` (antes un solo grid plano): **Lenguajes & Tecnologías** (C#/.NET · Python · JavaScript · SQL · HTML/CSS), **Herramientas** (Git/GitHub · VS Code · Excel) y **Enfoque & Competencias** (IA Aplicada · Análisis de Negocio · Gestión de Proyectos · Resolución de Problemas · Trabajo en Equipo). Cada grupo en `.skill-group` con etiqueta `─ NOMBRE` (`.group-label` = tick accent + label mono), **sin** número de cantidad
