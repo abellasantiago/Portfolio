@@ -2,7 +2,7 @@
 
 Mi portfolio personal. Hecho desde cero con HTML, CSS y JS — sin frameworks ni build tools.
 
-**[→ Ver en vivo](https://abellasantiago.github.io/Portfolio/)**
+**[→ Ver en vivo](https://abellasantiago.github.io/Portfolio-Personal/)**
 
 ![Santiago Abella — Portfolio](assets/og-image.png)
 
