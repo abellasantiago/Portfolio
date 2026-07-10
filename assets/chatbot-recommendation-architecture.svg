@@ -1,0 +1,161 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 1020" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace">
+<rect width="1140" height="1020" fill="#070707"/>
+
+<!-- HEADER -->
+<rect x="40" y="34" width="34" height="2" fill="#c8f135"/>
+<text x="84" y="40" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="13" letter-spacing="2" fill="#c8f135">CHATBOT · RECOMMENDATION ENGINE</text>
+<text x="84" y="60" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="11.5" fill="#8a8a8a">Sistema de recomendaciones · C# / .NET 8 · Design Patterns</text>
+
+<!-- LEGEND -->
+<line x1="690" y1="38" x2="716" y2="38" stroke="rgba(200,241,53,0.32)" stroke-width="1.6"/>
+<text x="724" y="42" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="10.5" fill="#8a8a8a">hereda</text>
+<line x1="792" y1="38" x2="818" y2="38" stroke="#3f3f3f" stroke-width="1.6" stroke-dasharray="4 4"/>
+<text x="826" y="42" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="10.5" fill="#8a8a8a">implementa</text>
+<line x1="930" y1="38" x2="956" y2="38" stroke="#555555" stroke-width="1.6"/>
+<text x="964" y="42" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="10.5" fill="#8a8a8a">usa</text>
+
+<!-- SECTION LABEL: MOTOR -->
+<text x="40" y="120" font-family="'Syne', system-ui, sans-serif" font-size="15" font-weight="700" letter-spacing="1" fill="#e8e8e8">Motor de recomendaciones</text>
+<text x="40" y="140" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="11" fill="#8a8a8a">Desacoplado del dominio · Strategy · Facade + Singleton</text>
+
+<!-- SYSTEMFACADE (entry point, highlighted) -->
+<rect x="430" y="84" width="280" height="70" rx="7" fill="rgba(200,241,53,0.06)" stroke="#c8f135" stroke-width="1"/>
+<text x="570" y="106" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">Facade · Singleton · punto de entrada</text>
+<text x="570" y="127" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="14" fill="#c8f135">SystemFacade</text>
+<text x="570" y="144" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" fill="#8a8a8a">orquesta motor + repositorios</text>
+
+<!-- usa: SystemFacade -> RecommendationEngine -->
+<line x1="570" y1="154" x2="570" y2="190" stroke="#555555" stroke-width="1.2"/>
+<text x="580" y="176" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" fill="#8a8a8a">usa</text>
+
+<!-- RECOMMENDATIONENGINE -->
+<rect x="445" y="190" width="250" height="60" rx="7" fill="#0e0e0e" stroke="#2e2e2e" stroke-width="1"/>
+<text x="570" y="209" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">motor desacoplado del dominio</text>
+<text x="570" y="228" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#e8e8e8">RecommendationEngine</text>
+<text x="570" y="243" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" fill="#8a8a8a">pipeline: Strategy · Filter · Sorter</text>
+
+<!-- usa fan: engine -> 3 interfaces -->
+<path d="M 570 250 L 570 276 M 200 276 L 940 276 M 200 276 L 200 300 M 570 276 L 570 300 M 940 276 L 940 300" fill="none" stroke="#555555" stroke-width="1.2"/>
+<text x="580" y="271" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" fill="#8a8a8a">usa</text>
+
+<!-- INTERFACE: IRecommendationStrategy -->
+<rect x="85" y="300" width="230" height="50" rx="7" fill="#0a0a0a" stroke="#383838" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="200" y="318" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">interface</text>
+<text x="200" y="337" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12" fill="#d8d8d8">IRecommendationStrategy</text>
+
+<!-- INTERFACE: IRecommendationFilter -->
+<rect x="465" y="300" width="210" height="50" rx="7" fill="#0a0a0a" stroke="#383838" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="570" y="318" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">interface</text>
+<text x="570" y="337" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12" fill="#d8d8d8">IRecommendationFilter</text>
+
+<!-- INTERFACE: IRecommendationSorter -->
+<rect x="835" y="300" width="210" height="50" rx="7" fill="#0a0a0a" stroke="#383838" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="940" y="318" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">interface</text>
+<text x="940" y="337" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12" fill="#d8d8d8">IRecommendationSorter</text>
+
+<!-- implementa tree: Strategy -->
+<path d="M 200 350 L 200 356 M 66 356 L 200 356 M 66 356 L 66 551 M 66 383 L 95 383 M 66 425 L 95 425 M 66 467 L 95 467 M 66 509 L 95 509 M 66 551 L 95 551" fill="none" stroke="#3f3f3f" stroke-width="1.2" stroke-dasharray="4 4"/>
+<rect x="95" y="366" width="210" height="34" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="200" y="388" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12" fill="#cfcfcf">BasedOnHistory</text>
+<rect x="95" y="408" width="210" height="34" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="200" y="430" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12" fill="#cfcfcf">BasedOnPreferences</text>
+<rect x="95" y="450" width="210" height="34" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="200" y="472" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12" fill="#cfcfcf">BasedOnSimilarUsers</text>
+<rect x="95" y="492" width="210" height="34" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="200" y="514" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12" fill="#cfcfcf">PopularityStrategy</text>
+<rect x="95" y="534" width="210" height="34" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="200" y="556" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="11" fill="#cfcfcf">PopularityByArtistStrategy</text>
+
+<!-- implementa tree: Filter -->
+<path d="M 570 350 L 570 356 M 440 356 L 570 356 M 440 356 L 440 425 M 440 383 L 470 383 M 440 425 L 470 425" fill="none" stroke="#3f3f3f" stroke-width="1.2" stroke-dasharray="4 4"/>
+<rect x="470" y="366" width="200" height="34" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="570" y="388" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12" fill="#cfcfcf">ExcludeConsumedFilter</text>
+<rect x="470" y="408" width="200" height="34" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="570" y="430" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12" fill="#cfcfcf">ExcludeTagsFilter</text>
+
+<!-- implementa tree: Sorter -->
+<path d="M 940 350 L 940 356 M 810 356 L 940 356 M 810 356 L 810 425 M 810 383 L 840 383 M 810 425 L 840 425" fill="none" stroke="#3f3f3f" stroke-width="1.2" stroke-dasharray="4 4"/>
+<rect x="840" y="366" width="200" height="34" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="940" y="388" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12" fill="#cfcfcf">NewestSorter</text>
+<rect x="840" y="408" width="200" height="34" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="940" y="430" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12" fill="#cfcfcf">PopularitySorter</text>
+
+<!-- DIVIDER 1 -->
+<line x1="40" y1="610" x2="1100" y2="610" stroke="#1c1c1c" stroke-width="1"/>
+
+<!-- SECTION: DOMINIO -->
+<text x="40" y="650" font-family="'Syne', system-ui, sans-serif" font-size="15" font-weight="700" letter-spacing="1" fill="#e8e8e8">Dominio &amp; contenido</text>
+
+<!-- domain interfaces -->
+<rect x="90" y="676" width="170" height="46" rx="7" fill="#0a0a0a" stroke="#383838" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="175" y="693" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">interface</text>
+<text x="175" y="710" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#d8d8d8">IContent</text>
+
+<rect x="300" y="676" width="210" height="46" rx="7" fill="#0a0a0a" stroke="#383838" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="405" y="693" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">interface</text>
+<text x="405" y="710" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#d8d8d8">IContentRepository</text>
+
+<rect x="545" y="676" width="190" height="46" rx="7" fill="#0a0a0a" stroke="#383838" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="640" y="693" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">interface</text>
+<text x="640" y="710" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#d8d8d8">IUserRepository</text>
+
+<rect x="775" y="676" width="160" height="46" rx="7" fill="#0e0e0e" stroke="rgba(200,241,53,0.30)" stroke-width="1"/>
+<text x="855" y="693" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">clase base</text>
+<text x="855" y="710" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#e8e8e8">GenericUser</text>
+
+<!-- domain implementa lines -->
+<path d="M 175 722 L 175 756" fill="none" stroke="#3f3f3f" stroke-width="1.2" stroke-dasharray="4 4"/>
+<path d="M 405 722 L 405 756" fill="none" stroke="#3f3f3f" stroke-width="1.2" stroke-dasharray="4 4"/>
+<path d="M 640 722 L 640 756" fill="none" stroke="#3f3f3f" stroke-width="1.2" stroke-dasharray="4 4"/>
+<!-- hereda: GenericUser -> User, Admin -->
+<path d="M 855 722 L 855 738 M 810 738 L 900 738 M 810 738 L 810 756 M 900 738 L 900 756" fill="none" stroke="rgba(200,241,53,0.32)" stroke-width="1.4"/>
+
+<!-- domain concretes -->
+<rect x="95" y="756" width="160" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="175" y="775" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Music</text>
+<text x="175" y="789" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9" fill="#8a8a8a">título · tags · popularidad</text>
+
+<rect x="325" y="756" width="160" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="405" y="782" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Catalog</text>
+
+<rect x="560" y="756" width="160" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="640" y="782" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">UserRepository</text>
+
+<rect x="770" y="756" width="80" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="810" y="782" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">User</text>
+<rect x="860" y="756" width="80" height="42" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="900" y="782" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Admin</text>
+
+<!-- domain support strip -->
+<text x="40" y="841" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" fill="#8a8a8a">soporte</text>
+<rect x="95" y="820" width="180" height="34" rx="7" fill="#0a0a0a" stroke="#242424" stroke-width="1"/>
+<text x="185" y="842" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="11.5" fill="#8a8a8a">UserPreferences</text>
+<rect x="290" y="820" width="120" height="34" rx="7" fill="#0a0a0a" stroke="#242424" stroke-width="1"/>
+<text x="350" y="842" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="11.5" fill="#8a8a8a">Interaction</text>
+<rect x="425" y="820" width="150" height="34" rx="7" fill="#0a0a0a" stroke="#242424" stroke-width="1"/>
+<text x="500" y="842" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="11.5" fill="#8a8a8a">InteractionType</text>
+
+<!-- DIVIDER 2 -->
+<line x1="40" y1="880" x2="1100" y2="880" stroke="#1c1c1c" stroke-width="1"/>
+
+<!-- SECTION: DISCORD -->
+<text x="40" y="914" font-family="'Syne', system-ui, sans-serif" font-size="15" font-weight="700" letter-spacing="1" fill="#e8e8e8">Interfaz de Discord &amp; comandos</text>
+
+<rect x="85" y="936" width="140" height="50" rx="7" fill="#0a0a0a" stroke="#383838" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="155" y="954" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">interface</text>
+<text x="155" y="973" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="13" fill="#d8d8d8">IBot</text>
+
+<line x1="225" y1="961" x2="255" y2="961" stroke="#3f3f3f" stroke-width="1.2" stroke-dasharray="4 4"/>
+<rect x="255" y="936" width="120" height="50" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="315" y="965" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">Bot</text>
+
+<line x1="375" y1="961" x2="395" y2="961" stroke="#555555" stroke-width="1.2"/>
+<rect x="395" y="936" width="130" height="50" rx="7" fill="#0c0c0c" stroke="#242424" stroke-width="1"/>
+<text x="460" y="965" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="12.5" fill="#cfcfcf">BotLoader</text>
+
+<!-- Commands highlight -->
+<rect x="600" y="930" width="500" height="64" rx="7" fill="rgba(200,241,53,0.06)" stroke="#c8f135" stroke-width="1"/>
+<text x="850" y="952" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9.5" font-style="italic" fill="#8a8a8a">patrón Command · comandos sobre SystemFacade</text>
+<text x="850" y="973" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="13" fill="#c8f135">Commands</text>
+<text x="850" y="988" text-anchor="middle" font-family="'DM Mono', ui-monospace, 'SFMono-Regular', monospace" font-size="9" fill="#8a8a8a">Like · Dislike · Recommend · History · Register · Play · …</text>
+</svg>

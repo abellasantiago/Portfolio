@@ -138,6 +138,10 @@ document.querySelectorAll('.oculto').forEach(el => revealObserver.observe(el));
 
 // ─── STAGGER ITEMS INSIDE SECTIONS ───────────────────────────
 document.querySelectorAll('.item, .skill-item, .contact-item, .project-card').forEach((el, i) => {
+  // Las project cards NO llevan stagger inline: entran con el reveal de la
+  // sección (.oculto→.visible), no card por card. Si les seteamos transition-delay
+  // acá, ese delay queda pegado y contamina el hover del dolly (zoom con retardo).
+  if (el.classList.contains('project-card')) return;
   const delay = `${(i % 6) * 0.07}s`;
   el.style.transitionDelay = delay;
   el.style.setProperty('--stagger-delay', delay);
@@ -249,9 +253,10 @@ function initGridCells() {
 
   document.querySelectorAll('.skills-grid').forEach(g => prepareGrid(g, getComputedCols(g)));
   const contactGrid = document.querySelector('.contact-grid');
-  const projectGrid = document.querySelector('.project-grid');
   if (contactGrid) prepareGrid(contactGrid, getComputedCols(contactGrid));
-  if (projectGrid) prepareGrid(projectGrid, getComputedCols(projectGrid));
+  // .project-grid queda fuera del fly-in: ahora es un scroller horizontal y los
+  // offsets de vuelo (cientos de px) expandirían su área scrolleable rompiendo la
+  // barra. Las cards entran con el reveal de la sección (.oculto → .visible).
 }
 
 function updateGridCells() {
@@ -260,7 +265,7 @@ function updateGridCells() {
   const accentRgb = getComputedStyle(document.body)
     .getPropertyValue('--accent-rgb').trim() || '200,241,53';
 
-  document.querySelectorAll('.skills-grid, .contact-grid, .project-grid').forEach(grid => {
+  document.querySelectorAll('.skills-grid, .contact-grid').forEach(grid => {
     const rect       = grid.getBoundingClientRect();
     const enterAt    = wh + 100;
     const completeAt = wh * 0.15;
@@ -1333,9 +1338,20 @@ document.querySelectorAll('.contact-item').forEach(el => {
   if (!modal) return;
   const openers = document.querySelectorAll('[data-arch-open]');
   if (!openers.length) return;
+  const img     = modal.querySelector('.arch-modal-body img');
+  const titleEl = modal.querySelector('#arch-modal-title');
   let lastFocused = null;
 
-  function open() {
+  function open(e) {
+    // Cada opener declara su propio diagrama (src/título/alt) → un solo
+    // modal sirve a todas las cards.
+    const opener = e.currentTarget;
+    const src = opener.dataset.archSrc;
+    if (src && img) {
+      img.src = src;
+      img.alt = opener.dataset.archAlt || opener.dataset.archTitle || '';
+    }
+    if (opener.dataset.archTitle && titleEl) titleEl.textContent = opener.dataset.archTitle;
     lastFocused = document.activeElement;
     modal.hidden = false;
     requestAnimationFrame(() => modal.classList.add('open'));
