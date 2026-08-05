@@ -317,7 +317,6 @@ body.claro .skill-item,
 body.claro .contact-item,
 body.claro .project-card { background: rgba(255, 255, 255, 0.75); }
 
-body.claro .project-card:hover { background: rgba(248, 248, 255, 0.85); }
 body.claro .project-card--placeholder:hover { background: rgba(255, 255, 255, 0.75); }
 
 /* Skill dots en claro: usar border como base visible */
@@ -783,7 +782,7 @@ h2 {
 .contact-item::after {
   content: '';
   position: absolute; inset: 0;
-  background: var(--accent-dim);
+  background: rgba(var(--accent-rgb), 0.12);
   opacity: 0; transition: opacity 0.25s;
 }
 .visible .contact-item {
@@ -909,7 +908,7 @@ footer {
 }
 
 .project-card::before { display: none; }
-.project-card:hover { background: rgba(var(--bg-rgb, 3,3,3), 0.75); }
+.project-card:hover { background: rgba(var(--accent-rgb), 0.12); }
 
 .visible .project-card {
   box-shadow:
